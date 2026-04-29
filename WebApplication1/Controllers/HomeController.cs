@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using WebApplication1.Models;
+using EduDocFlow.Web.Models;
 
 namespace WebApplication1.Controllers
 {

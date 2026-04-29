@@ -19,10 +19,10 @@ namespace EduDocFlow.Web.Models
         [Display(Name = "Без шаблона")]
         None = 0,
 
-        [Display(Name = "Справка об обучении")]
-        StudyCertificate = 1,
+        [Display(Name = "Справка с места учёбы")]
+        StudyPlaceCertificate = 1,
 
-        [Display(Name = "Справка о периоде обучения")]
+        [Display(Name = "Справка об обучении или о периоде обучения")]
         StudyPeriodCertificate = 2,
 
         [Display(Name = "Справка о размере стипендии")]
