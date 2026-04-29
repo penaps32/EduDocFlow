@@ -3,13 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EduDocFlow.Web.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
-
         public DbSet<User> Users => Set<User>();
         public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
         public DbSet<DocumentType> DocumentTypes => Set<DocumentType>();

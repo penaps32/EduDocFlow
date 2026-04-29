@@ -13,20 +13,30 @@ namespace EduDocFlow.Web.Models
 
         [Required]
         [StringLength(30)]
+        [Display(Name = "Код студента")]
+        public string StudentCode { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(30)]
         [Display(Name = "Группа")]
         public string GroupName { get; set; } = string.Empty;
 
-        [StringLength(150)]
-        [Display(Name = "Специальность")]
-        public string Specialty { get; set; } = string.Empty;
+        [StringLength(200)]
+        [Display(Name = "Образовательная программа")]
+        public string EducationProgram { get; set; } = string.Empty;
 
-        [StringLength(30)]
         [Display(Name = "Курс")]
-        public string Course { get; set; } = string.Empty;
+        public int Course { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Форма обучения")]
-        public string EducationForm { get; set; } = "очная";
+        public string StudyForm { get; set; } = "очная";
+
+        [Display(Name = "Дата зачисления")]
+        public DateTime EnrollmentDate { get; set; }
+
+        [Display(Name = "Проживает в общежитии")]
+        public bool IsDormitoryResident { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Статус студента")]

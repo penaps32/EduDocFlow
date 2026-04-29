@@ -1,4 +1,5 @@
 ﻿using EduDocFlow.Web.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduDocFlow.Web.Data
@@ -9,12 +10,61 @@ namespace EduDocFlow.Web.Data
         {
             await context.Database.MigrateAsync();
 
+            if (!await context.Users.AnyAsync())
+            {
+                var student = new User
+                {
+                    FullName = "Иванов Иван Иванович",
+                    Email = "student@edudoc.local",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student123!"),
+                    Role = UserRole.Student,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+
+                var methodist = new User
+                {
+                    FullName = "Петрова Анна Сергеевна",
+                    Email = "methodist@edudoc.local",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Methodist123!"),
+                    Role = UserRole.Methodist,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+
+                var admin = new User
+                {
+                    FullName = "Администратор системы",
+                    Email = "admin@edudoc.local",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                    Role = UserRole.Admin,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+
+                context.Users.AddRange(student, methodist, admin);
+                await context.SaveChangesAsync();
+
+                context.StudentProfiles.Add(new StudentProfile
+                {
+                    UserId = student.Id,
+                    StudentCode = "СТ-001",
+                    GroupName = "ИСП-401",
+                    EducationProgram = "Информационные системы и программирование",
+                    Course = 4,
+                    StudyForm = "очная",
+                    EnrollmentDate = new DateTime(2022, 9, 1),
+                    IsDormitoryResident = true
+                });
+
+                await context.SaveChangesAsync();
+            }
+
             if (!await context.DocumentTypes.AnyAsync())
             {
                 var documentTypes = new List<DocumentType>
                 {
-                    new DocumentType
-                    {
+                    new() {
                         Code = "STUDY_PLACE_CERTIFICATE",
                         Name = "Справка с места учёбы",
                         Category = DocumentTypeCategory.Certificate,
@@ -29,8 +79,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 10
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "STUDY_PERIOD_CERTIFICATE",
                         Name = "Справка об обучении или о периоде обучения",
                         Category = DocumentTypeCategory.Certificate,
@@ -45,8 +94,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 20
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "SCHOLARSHIP_CERTIFICATE",
                         Name = "Справка о размере стипендии",
                         Category = DocumentTypeCategory.Certificate,
@@ -61,8 +109,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 30
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "DORMITORY_CERTIFICATE",
                         Name = "Справка о проживании в общежитии",
                         Category = DocumentTypeCategory.Certificate,
@@ -77,8 +124,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 40
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "CALL_CERTIFICATE",
                         Name = "Справка-вызов",
                         Category = DocumentTypeCategory.Certificate,
@@ -93,8 +139,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 50
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "STUDENT_CHARACTERISTIC",
                         Name = "Характеристика с места учебы",
                         Category = DocumentTypeCategory.Certificate,
@@ -109,8 +154,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 60
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "CERTIFICATE_REQUEST_APPLICATION",
                         Name = "Заявление на выдачу справки",
                         Category = DocumentTypeCategory.Application,
@@ -125,8 +169,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 100
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "ACADEMIC_LEAVE_APPLICATION",
                         Name = "Заявление на академический отпуск",
                         Category = DocumentTypeCategory.Application,
@@ -141,8 +184,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 110
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "TRANSFER_APPLICATION",
                         Name = "Заявление на перевод",
                         Category = DocumentTypeCategory.Application,
@@ -157,8 +199,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 120
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "EXPULSION_APPLICATION",
                         Name = "Заявление на отчисление",
                         Category = DocumentTypeCategory.Application,
@@ -173,8 +214,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 130
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "REINSTATEMENT_APPLICATION",
                         Name = "Заявление на восстановление",
                         Category = DocumentTypeCategory.Application,
@@ -189,8 +229,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 140
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "DUPLICATE_DOCUMENT_APPLICATION",
                         Name = "Заявление на выдачу дубликата документа",
                         Category = DocumentTypeCategory.Application,
@@ -205,8 +244,7 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 150
                     },
 
-                    new DocumentType
-                    {
+                    new() {
                         Code = "PERSONAL_DATA_CHANGE_APPLICATION",
                         Name = "Заявление на изменение персональных данных",
                         Category = DocumentTypeCategory.Application,
@@ -221,9 +259,55 @@ namespace EduDocFlow.Web.Data
                         SortOrder = 160
                     }
                 };
+                if (!await context.Users.AnyAsync())
+                {
+                    var passwordHasher = new PasswordHasher<User>();
 
-                await context.DocumentTypes.AddRangeAsync(documentTypes);
-                await context.SaveChangesAsync();
+                    var admin = new User
+                    {
+                        FullName = "Администратор системы",
+                        Email = "admin@edudoc.local",
+                        Role = UserRole.Admin,
+                        IsActive = true
+                    };
+
+                    admin.PasswordHash = passwordHasher.HashPassword(admin, "Admin123!");
+
+                    var methodist = new User
+                    {
+                        FullName = "Сотрудник учебной части",
+                        Email = "methodist@edudoc.local",
+                        Role = UserRole.Methodist,
+                        IsActive = true
+                    };
+
+                    methodist.PasswordHash = passwordHasher.HashPassword(methodist, "Methodist123!");
+
+                    var student = new User
+                    {
+                        FullName = "Иванов Иван Иванович",
+                        Email = "student@edudoc.local",
+                        Role = UserRole.Student,
+                        IsActive = true
+                    };
+
+                    student.PasswordHash = passwordHasher.HashPassword(student, "Student123!");
+
+                    await context.Users.AddRangeAsync(admin, methodist, student);
+
+                    await context.StudentProfiles.AddAsync(new StudentProfile
+                    {
+                        User = student,
+                        StudentCode = "СТ-001",
+                        GroupName = "ИСП-41",
+                        EducationProgram = "Информационные системы и программирование",
+                        Course = 4,
+                        StudyForm = "очная",
+                        EnrollmentDate = new DateTime(2022, 9, 1),
+                        IsDormitoryResident = true,
+                        StudentStatus = "обучается"
+                    });
+                }
             }
         }
     }
