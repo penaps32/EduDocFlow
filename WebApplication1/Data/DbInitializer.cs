@@ -9,6 +9,7 @@ namespace EduDocFlow.Web.Data
         public static async Task InitializeAsync(ApplicationDbContext context)
         {
             await context.Database.MigrateAsync();
+            var passwordHasher = new PasswordHasher<User>();
 
             if (!await context.Users.AnyAsync())
             {
@@ -16,7 +17,7 @@ namespace EduDocFlow.Web.Data
                 {
                     FullName = "Иванов Иван Иванович",
                     Email = "student@edudoc.local",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student123!"),
+                    PasswordHash = string.Empty,
                     Role = UserRole.Student,
                     IsActive = true,
                     CreatedAt = DateTime.Now
@@ -26,7 +27,7 @@ namespace EduDocFlow.Web.Data
                 {
                     FullName = "Петрова Анна Сергеевна",
                     Email = "methodist@edudoc.local",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Methodist123!"),
+                    PasswordHash = string.Empty,
                     Role = UserRole.Methodist,
                     IsActive = true,
                     CreatedAt = DateTime.Now
@@ -36,11 +37,15 @@ namespace EduDocFlow.Web.Data
                 {
                     FullName = "Администратор системы",
                     Email = "admin@edudoc.local",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                    PasswordHash = string.Empty,
                     Role = UserRole.Admin,
                     IsActive = true,
                     CreatedAt = DateTime.Now
                 };
+
+                student.PasswordHash = passwordHasher.HashPassword(student, "Student123!");
+                methodist.PasswordHash = passwordHasher.HashPassword(methodist, "Methodist123!");
+                admin.PasswordHash = passwordHasher.HashPassword(admin, "Admin123!");
 
                 context.Users.AddRange(student, methodist, admin);
                 await context.SaveChangesAsync();
@@ -258,57 +263,11 @@ namespace EduDocFlow.Web.Data
                         IsActive = true,
                         SortOrder = 160
                     }
+
                 };
-                if (!await context.Users.AnyAsync())
-                {
-                    var passwordHasher = new PasswordHasher<User>();
-
-                    var admin = new User
-                    {
-                        FullName = "Администратор системы",
-                        Email = "admin@edudoc.local",
-                        Role = UserRole.Admin,
-                        IsActive = true
-                    };
-
-                    admin.PasswordHash = passwordHasher.HashPassword(admin, "Admin123!");
-
-                    var methodist = new User
-                    {
-                        FullName = "Сотрудник учебной части",
-                        Email = "methodist@edudoc.local",
-                        Role = UserRole.Methodist,
-                        IsActive = true
-                    };
-
-                    methodist.PasswordHash = passwordHasher.HashPassword(methodist, "Methodist123!");
-
-                    var student = new User
-                    {
-                        FullName = "Иванов Иван Иванович",
-                        Email = "student@edudoc.local",
-                        Role = UserRole.Student,
-                        IsActive = true
-                    };
-
-                    student.PasswordHash = passwordHasher.HashPassword(student, "Student123!");
-
-                    await context.Users.AddRangeAsync(admin, methodist, student);
-
-                    await context.StudentProfiles.AddAsync(new StudentProfile
-                    {
-                        User = student,
-                        StudentCode = "СТ-001",
-                        GroupName = "ИСП-41",
-                        EducationProgram = "Информационные системы и программирование",
-                        Course = 4,
-                        StudyForm = "очная",
-                        EnrollmentDate = new DateTime(2022, 9, 1),
-                        IsDormitoryResident = true,
-                        StudentStatus = "обучается"
-                    });
-                }
+                await context.DocumentTypes.AddRangeAsync(documentTypes);
+                await context.SaveChangesAsync();
+            }
             }
         }
     }
-}

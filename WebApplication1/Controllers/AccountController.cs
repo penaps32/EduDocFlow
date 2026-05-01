@@ -21,11 +21,32 @@ namespace EduDocFlow.Web.Controllers
         {
             if (User.Identity?.IsAuthenticated == true)
             {
+                if (User.IsInRole(UserRole.Student.ToString()))
+                    return RedirectToAction("Index", "Student");
+
+                if (User.IsInRole(UserRole.Methodist.ToString()))
+                    return RedirectToAction("Index", "Methodist");
+
+                if (User.IsInRole(UserRole.Admin.ToString()))
+                    return RedirectToAction("Index", "Admin");
+
                 return RedirectToAction("Index", "Home");
             }
 
             return View();
         }
+
+        private RedirectToActionResult RedirectByRole(UserRole role)
+        {
+            return role switch
+            {
+                UserRole.Student => RedirectToAction("Index", "Student"),
+                UserRole.Methodist => RedirectToAction("Index", "Methodist"),
+                UserRole.Admin => RedirectToAction("Index", "Admin"),
+                _ => RedirectToAction("Index", "Home")
+            };
+        }
+
 
         [HttpPost]
         [AllowAnonymous]
@@ -65,24 +86,21 @@ namespace EduDocFlow.Web.Controllers
                 new(ClaimTypes.Role, user.Role.ToString())
             };
 
-            var identity = new ClaimsIdentity(
+            var claimsIdentity = new ClaimsIdentity(
                 claims,
                 CookieAuthenticationDefaults.AuthenticationScheme);
 
-            var principal = new ClaimsPrincipal(identity);
-
-            var properties = new AuthenticationProperties
+            var authProperties = new AuthenticationProperties
             {
-                IsPersistent = model.RememberMe,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
+                IsPersistent = model.RememberMe
             };
 
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
-                principal,
-                properties);
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
 
-            return RedirectToAction("Index", "Home");
+            return RedirectByRole(user.Role);
         }
 
         [HttpPost]
@@ -99,5 +117,7 @@ namespace EduDocFlow.Web.Controllers
         {
             return View();
         }
+
+
     }
 }

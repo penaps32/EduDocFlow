@@ -1,0 +1,184 @@
+﻿@model EduDocFlow.Web.ViewModels.StudentDashboardViewModel
+@using EduDocFlow.Web.Models
+
+@{
+    ViewData["Title"] = "Кабинет студента";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="mb-1">Кабинет студента</h1>
+            <p class="text-muted mb-0">
+                Личный кабинет для подачи заявлений и отслеживания готовности документов.
+            </p>
+        </div>
+
+        <a class="btn btn-primary disabled" href="#">
+            Новая заявка
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    Данные студента
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>ФИО:</strong><br />
+                        @Model.FullName
+                    </p>
+
+                    <p class="mb-2">
+                        <strong>Электронная почта:</strong><br />
+                        @Model.Email
+                    </p>
+
+                    @if (Model.Profile != null)
+                    {
+                        <p class="mb-2">
+                            <strong>Группа:</strong><br />
+                            @Model.Profile.GroupName
+                        </p>
+
+                        <p class="mb-2">
+                            <strong>Курс:</strong><br />
+                            @Model.Profile.Course
+                        </p>
+
+                        <p class="mb-2">
+                            <strong>Образовательная программа:</strong><br />
+                            @Model.Profile.EducationProgram
+                        </p>
+
+                        <p class="mb-0">
+                            <strong>Статус:</strong><br />
+                            @Model.Profile.StudentStatus
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning mb-0">
+                            Профиль студента не заполнен.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <div class="fs-2 fw-bold">@Model.TotalRequests</div>
+                            <div class="text-muted">Всего заявок</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <div class="fs-2 fw-bold">@Model.CreatedRequests</div>
+                            <div class="text-muted">Созданы</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <div class="fs-2 fw-bold">@Model.InProgressRequests</div>
+                            <div class="text-muted">В работе</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <div class="fs-2 fw-bold">@Model.CompletedRequests</div>
+                            <div class="text-muted">Готовы</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    Последние заявки
+                </div>
+
+                <div class="card-body">
+                    @if (Model.RecentRequests.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Номер</th>
+                                        <th>Документ</th>
+                                        <th>Статус</th>
+                                        <th>Дата создания</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var request in Model.RecentRequests)
+                                    {
+                                        <tr>
+                                            <td>@request.Number</td>
+                                            <td>@request.DocumentType?.Name</td>
+                                            <td>
+                                                <span class="badge @GetStatusCss(request.Status)">
+                                                    @GetStatusName(request.Status)
+                                                </span>
+                                            </td>
+                                            <td>@request.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">
+                            У вас пока нет заявок. Следующим шагом добавим форму подачи заявления.
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private static string GetStatusName(DocumentStatus status)
+    {
+        return status switch
+        {
+            DocumentStatus.Created => "Создана",
+            DocumentStatus.OnTeacherReview => "На проверке у куратора",
+            DocumentStatus.OnMethodistReview => "На проверке в учебной части",
+            DocumentStatus.Completed => "Готова",
+            DocumentStatus.Rejected => "Отклонена",
+            _ => "Неизвестно"
+        };
+    }
+
+    private static string GetStatusCss(DocumentStatus status)
+    {
+        return status switch
+        {
+            DocumentStatus.Created => "text-bg-secondary",
+            DocumentStatus.OnTeacherReview => "text-bg-warning",
+            DocumentStatus.OnMethodistReview => "text-bg-info",
+            DocumentStatus.Completed => "text-bg-success",
+            DocumentStatus.Rejected => "text-bg-danger",
+            _ => "text-bg-secondary"
+        };
+    }
+}
