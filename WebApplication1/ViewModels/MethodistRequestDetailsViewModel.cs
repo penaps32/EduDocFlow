@@ -45,6 +45,8 @@ namespace EduDocFlow.Web.ViewModels
         public DateTime? DueDate { get; set; }
 
         public List<MethodistRequestHistoryItemViewModel> HistoryItems { get; set; } = new();
+
+        public List<MethodistRequestCommentViewModel> CommentItems { get; set; } = new();
     }
 
     public class MethodistRequestHistoryItemViewModel
@@ -54,6 +56,17 @@ namespace EduDocFlow.Web.ViewModels
         public string Comment { get; set; } = string.Empty;
 
         public DateTime ChangedAt { get; set; }
+
+        public string ChangedByUserName { get; set; } = string.Empty;
+    }
+
+    public class MethodistRequestCommentViewModel
+    {
+        public string AuthorName { get; set; } = string.Empty;
+
+        public string Text { get; set; } = string.Empty;
+
+        public DateTime CreatedAt { get; set; }
     }
 
     public class ChangeRequestStatusViewModel

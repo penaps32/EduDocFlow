@@ -1,0 +1,241 @@
+﻿@model EduDocFlow.Web.ViewModels.MethodistRequestDetailsViewModel
+@using EduDocFlow.Web.Models
+
+@{
+    ViewData["Title"] = "Просмотр заявки";
+
+    string StatusName(DocumentStatus status)
+    {
+        return status switch
+        {
+            DocumentStatus.Created => "Создана",
+            DocumentStatus.OnTeacherReview => "На проверке преподавателя",
+            DocumentStatus.OnMethodistReview => "В работе у учебной части",
+            DocumentStatus.Completed => "Готова",
+            DocumentStatus.Rejected => "Отклонена",
+            _ => "Неизвестный статус"
+        };
+    }
+
+    string EmptyText(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "Не указано" : value;
+    }
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="mb-1">Заявка @Model.Number</h1>
+            <p class="text-muted mb-0">Просмотр и обработка заявки студента</p>
+        </div>
+
+        <a asp-controller="Methodist" asp-action="Index" class="btn btn-outline-secondary">
+            Назад к списку
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Данные заявки</h5>
+                </div>
+
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Номер заявки</dt>
+                        <dd class="col-sm-8">@Model.Number</dd>
+
+                        <dt class="col-sm-4">Тип документа</dt>
+                        <dd class="col-sm-8">@Model.DocumentTypeName</dd>
+
+                        <dt class="col-sm-4">Статус</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-secondary">
+                                @StatusName(Model.Status)
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Дата создания</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-4">Срок исполнения</dt>
+                        <dd class="col-sm-8">
+                            @(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("dd.MM.yyyy") : "Не указан")
+                        </dd>
+
+                        <dt class="col-sm-4">Получатель документа</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.RecipientOrganization)</dd>
+
+                        <dt class="col-sm-4">Место предоставления</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.DestinationPlace)</dd>
+
+                        <dt class="col-sm-4">Цель получения</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.Purpose)</dd>
+
+                        <dt class="col-sm-4">Место работы</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.Workplace)</dd>
+
+                        <dt class="col-sm-4">Комментарий студента</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.StudentComment)</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Данные студента</h5>
+                </div>
+
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">ФИО</dt>
+                        <dd class="col-sm-8">@Model.StudentFullName</dd>
+
+                        <dt class="col-sm-4">Почта</dt>
+                        <dd class="col-sm-8">@Model.StudentEmail</dd>
+
+                        <dt class="col-sm-4">Группа</dt>
+                        <dd class="col-sm-8">@Model.StudentGroup</dd>
+
+                        <dt class="col-sm-4">Курс</dt>
+                        <dd class="col-sm-8">@(Model.Course == 0 ? "Не указан" : Model.Course)</dd>
+
+                        <dt class="col-sm-4">Образовательная программа</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.EducationProgram)</dd>
+
+                        <dt class="col-sm-4">Форма обучения</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.StudyForm)</dd>
+
+                        <dt class="col-sm-4">Период обучения</dt>
+                        <dd class="col-sm-8">
+                            @(Model.StudyPeriodStart.HasValue ? Model.StudyPeriodStart.Value.ToString("dd.MM.yyyy") : "Не указано")
+                            -
+                            @(Model.StudyPeriodEnd.HasValue ? Model.StudyPeriodEnd.Value.ToString("dd.MM.yyyy") : "по настоящее время")
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">История обработки</h5>
+                </div>
+
+                <div class="card-body">
+                    @if (!Model.HistoryItems.Any())
+                    {
+                        <p class="text-muted mb-0">История изменений пока отсутствует.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Статус</th>
+                                        <th>Сотрудник</th>
+                                        <th>Комментарий</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.HistoryItems)
+                                    {
+                                        <tr>
+                                            <td>@item.ChangedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td>@StatusName(item.NewStatus)</td>
+                                            <td>@item.ChangedByUserName</td>
+                                            <td>@EmptyText(item.Comment)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Изменить статус</h5>
+                </div>
+
+                <div class="card-body">
+                    <form asp-controller="Methodist" asp-action="ChangeStatus" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="RequestId" value="@Model.Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Новый статус</label>
+                            <select name="NewStatus" class="form-select">
+                                <option value="@DocumentStatus.Created" selected="@(Model.Status == DocumentStatus.Created)">
+                                    Создана
+                                </option>
+                                <option value="@DocumentStatus.OnTeacherReview" selected="@(Model.Status == DocumentStatus.OnTeacherReview)">
+                                    На проверке преподавателя
+                                </option>
+                                <option value="@DocumentStatus.OnMethodistReview" selected="@(Model.Status == DocumentStatus.OnMethodistReview)">
+                                    В работе у учебной части
+                                </option>
+                                <option value="@DocumentStatus.Completed" selected="@(Model.Status == DocumentStatus.Completed)">
+                                    Готова
+                                </option>
+                                <option value="@DocumentStatus.Rejected" selected="@(Model.Status == DocumentStatus.Rejected)">
+                                    Отклонена
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Комментарий методиста</label>
+                            <textarea name="Comment" class="form-control" rows="4"
+                                      placeholder="Например: заявка принята в работу, документ готов или указана причина отклонения"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Сохранить изменения
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Комментарии</h5>
+                </div>
+
+                <div class="card-body">
+                    @if (!Model.CommentItems.Any())
+                    {
+                        <p class="text-muted mb-0">Комментариев пока нет.</p>
+                    }
+                    else
+                    {
+                        @foreach (var comment in Model.CommentItems)
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="fw-semibold">@comment.AuthorName</div>
+                                <div class="text-muted small mb-2">
+                                    @comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                                <div>@comment.Text</div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

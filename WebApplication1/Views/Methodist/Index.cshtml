@@ -121,9 +121,9 @@
                                     "FullName",
                                     "StudentName"
                                 );
-
                                 var groupName = Text(
                                     request,
+                                    "StudentGroup",
                                     "StudentProfile.GroupName",
                                     "StudentProfile.Group",
                                     "GroupName",
@@ -253,10 +253,9 @@
         return status switch
         {
             "Created" => "Создана",
-            "TeacherReview" => "На проверке преподавателя",
-            "MethodistWork" => "В работе у учебной части",
-            "InProgress" => "В работе у учебной части",
-            "Ready" => "Готова",
+            "OnTeacherReview" => "На проверке преподавателя",
+            "OnMethodistReview" => "В работе у учебной части",
+            "Completed" => "Готова",
             "Rejected" => "Отклонена",
 
             "Создана" => "Создана",
