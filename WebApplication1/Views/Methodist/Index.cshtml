@@ -1,0 +1,286 @@
+﻿@model EduDocFlow.Web.ViewModels.MethodistDashboardViewModel
+@using System.Reflection
+@using System.Linq
+@using System.Collections.Generic
+
+@{
+    ViewData["Title"] = "Кабинет методиста";
+
+    var requests = Model?.Requests?.Cast<object>().ToList() ?? new List<object>();
+
+    var totalCount = requests.Count;
+    var createdCount = requests.Count(x => IsStatus(x, "Created", "Создана"));
+    var teacherReviewCount = requests.Count(x => IsStatus(x, "TeacherReview", "На проверке преподавателя"));
+    var methodistWorkCount = requests.Count(x => IsStatus(x, "MethodistWork", "InProgress", "В работе у учебной части"));
+    var readyCount = requests.Count(x => IsStatus(x, "Ready", "Готова"));
+    var rejectedCount = requests.Count(x => IsStatus(x, "Rejected", "Отклонена"));
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">Кабинет методиста</h1>
+            <p class="text-muted mb-0">Обработка заявок студентов на оформление учебных документов</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">Всего заявок</div>
+                    <div class="fs-3 fw-semibold">@totalCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">Создана</div>
+                    <div class="fs-3 fw-semibold">@createdCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">На проверке</div>
+                    <div class="fs-3 fw-semibold">@teacherReviewCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">В работе</div>
+                    <div class="fs-3 fw-semibold">@methodistWorkCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">Готова</div>
+                    <div class="fs-3 fw-semibold">@readyCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">Отклонена</div>
+                    <div class="fs-3 fw-semibold">@rejectedCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Заявки студентов</h5>
+        </div>
+
+        <div class="card-body p-0">
+            @if (!requests.Any())
+            {
+                <div class="p-4 text-muted">
+                    Заявок пока нет.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>№</th>
+                                <th>Студент</th>
+                                <th>Группа</th>
+                                <th>Тип документа</th>
+                                <th>Дата создания</th>
+                                <th>Статус</th>
+                                <th class="text-end">Действия</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var request in requests)
+                            {
+                                var id = Text(request, "Id", "RequestId", "DocumentRequestId");
+                                var studentName = Text(
+                                    request,
+                                    "StudentProfile.User.FullName",
+                                    "Student.User.FullName",
+                                    "User.FullName",
+                                    "StudentFullName",
+                                    "FullName",
+                                    "StudentName"
+                                );
+
+                                var groupName = Text(
+                                    request,
+                                    "StudentProfile.GroupName",
+                                    "StudentProfile.Group",
+                                    "GroupName",
+                                    "Group"
+                                );
+
+                                var documentType = Text(
+                                    request,
+                                    "DocumentType.Name",
+                                    "DocumentType.Title",
+                                    "DocumentTypeName",
+                                    "DocumentName",
+                                    "TypeName"
+                                );
+
+                                var createdAt = Text(
+                                    request,
+                                    "CreatedAt",
+                                    "CreatedDate",
+                                    "DateCreated",
+                                    "Created"
+                                );
+
+                                var status = Text(
+                                    request,
+                                    "Status",
+                                    "DocumentStatus",
+                                    "CurrentStatus",
+                                    "StatusName"
+                                );
+
+                                <tr>
+                                    <td>@id</td>
+                                    <td>@studentName</td>
+                                    <td>@groupName</td>
+                                    <td>@documentType</td>
+                                    <td>@createdAt</td>
+                                    <td>
+                                        <span class="badge @StatusBadgeClass(status)">
+                                            @TranslateStatus(status)
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-primary"
+                                           href="@Url.Action("Details", "Methodist", new { id = id })">
+                                            Открыть
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    private static string Text(object source, params string[] paths)
+    {
+        foreach (var path in paths)
+        {
+            var value = GetValueByPath(source, path);
+
+            if (value == null)
+                continue;
+
+            var text = FormatValue(value);
+
+            if (!string.IsNullOrWhiteSpace(text))
+                return text;
+        }
+
+        return "—";
+    }
+
+    private static object? GetValueByPath(object? source, string path)
+    {
+        if (source == null || string.IsNullOrWhiteSpace(path))
+            return null;
+
+        object? current = source;
+
+        foreach (var part in path.Split('.'))
+        {
+            if (current == null)
+                return null;
+
+            var property = current.GetType().GetProperty(
+                part,
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase
+            );
+
+            if (property == null)
+                return null;
+
+            current = property.GetValue(current);
+        }
+
+        return current;
+    }
+
+    private static string FormatValue(object value)
+    {
+        if (value is DateTime dateTime)
+            return dateTime.ToString("dd.MM.yyyy HH:mm");
+
+        if (value is DateOnly dateOnly)
+            return dateOnly.ToString("dd.MM.yyyy");
+
+        return value.ToString() ?? string.Empty;
+    }
+
+    private static bool IsStatus(object request, params string[] expectedStatuses)
+    {
+        var status = Text(request, "Status", "DocumentStatus", "CurrentStatus", "StatusName");
+
+        return expectedStatuses.Any(expected =>
+            string.Equals(status, expected, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(TranslateStatus(status), expected, StringComparison.OrdinalIgnoreCase)
+        );
+    }
+
+    private static string TranslateStatus(string status)
+    {
+        return status switch
+        {
+            "Created" => "Создана",
+            "TeacherReview" => "На проверке преподавателя",
+            "MethodistWork" => "В работе у учебной части",
+            "InProgress" => "В работе у учебной части",
+            "Ready" => "Готова",
+            "Rejected" => "Отклонена",
+
+            "Создана" => "Создана",
+            "На проверке преподавателя" => "На проверке преподавателя",
+            "В работе у учебной части" => "В работе у учебной части",
+            "Готова" => "Готова",
+            "Отклонена" => "Отклонена",
+
+            _ => string.IsNullOrWhiteSpace(status) || status == "—" ? "Не указан" : status
+        };
+    }
+
+    private static string StatusBadgeClass(string status)
+    {
+        var translatedStatus = TranslateStatus(status);
+
+        return translatedStatus switch
+        {
+            "Создана" => "bg-secondary",
+            "На проверке преподавателя" => "bg-info text-dark",
+            "В работе у учебной части" => "bg-warning text-dark",
+            "Готова" => "bg-success",
+            "Отклонена" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

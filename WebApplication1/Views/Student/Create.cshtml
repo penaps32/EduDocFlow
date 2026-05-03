@@ -1,0 +1,86 @@
+﻿@model EduDocFlow.Web.ViewModels.CreateDocumentRequestViewModel
+
+@{
+    ViewData["Title"] = "Новая заявка";
+}
+
+<div class="container mt-4">
+    <div class="mb-4">
+        <h1 class="mb-1">Новая заявка</h1>
+        <p class="text-muted mb-0">
+            Заполните данные для оформления справки или заявления.
+        </p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Данные заявки
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="DocumentTypeId" class="form-label"></label>
+                    <select asp-for="DocumentTypeId" asp-items="Model.DocumentTypes" class="form-select">
+                        <option value="0">Выберите тип документа</option>
+                    </select>
+                    <span asp-validation-for="DocumentTypeId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="RecipientOrganization" class="form-label"></label>
+                    <input asp-for="RecipientOrganization" class="form-control" />
+                    <span asp-validation-for="RecipientOrganization" class="text-danger"></span>
+                    <div class="form-text">
+                        Например: военный комиссариат, место работы, организация по месту требования.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DestinationPlace" class="form-label"></label>
+                    <input asp-for="DestinationPlace" class="form-control" />
+                    <span asp-validation-for="DestinationPlace" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Purpose" class="form-label"></label>
+                    <textarea asp-for="Purpose" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Purpose" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Workplace" class="form-label"></label>
+                    <input asp-for="Workplace" class="form-control" />
+                    <span asp-validation-for="Workplace" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StudentComment" class="form-label">Комментарий к заявке необязательно</label>
+                    <textarea asp-for="StudentComment" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="StudentComment" class="text-danger"></span>
+                    <div class="form-text">
+                        Можно указать дополнительные пожелания: количество экземпляров, срочность или уточнения для учебной части.
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        Отправить заявку
+                    </button>
+
+                    <a asp-controller="Student" asp-action="Index" class="btn btn-outline-secondary">
+                        Назад
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
