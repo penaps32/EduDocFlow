@@ -1,0 +1,332 @@
+﻿@model EduDocFlow.Web.Models.DocumentRequest
+
+@{
+    Layout = null;
+
+    var student = Model.Student;
+    var profile = student?.StudentProfile;
+
+    var studyStart = Model.StudyPeriodStart ?? profile?.EnrollmentDate;
+    var studyEnd = Model.StudyPeriodEnd;
+
+    if (!studyEnd.HasValue && studyStart.HasValue)
+    {
+        studyEnd = studyStart.Value
+            .AddYears(3)
+            .AddMonths(10)
+            .AddDays(-1);
+    }
+
+    string Safe(string? value, string fallback = "не указано")
+    {
+        return string.IsNullOrWhiteSpace(value) ? fallback : value;
+    }
+
+    string DateText(DateTime? value)
+    {
+        return value.HasValue ? value.Value.ToString("dd.MM.yyyy") : "не указано";
+    }
+
+    string RecipientText()
+    {
+        return string.IsNullOrWhiteSpace(Model.RecipientOrganization)
+            ? "По месту требования"
+            : $"Для предоставления в {Model.RecipientOrganization}";
+    }
+
+    var today = DateTime.Now;
+
+    var orgNameLine1 = ViewData["OrganizationNameLine1"]?.ToString() ?? "Образовательная организация";
+    var orgNameLine2 = ViewData["OrganizationNameLine2"]?.ToString() ?? "среднего профессионального образования";
+    var orgNameLine3 = ViewData["OrganizationNameLine3"]?.ToString() ?? "«Учебный колледж»";
+    var orgInn = ViewData["OrganizationInn"]?.ToString() ?? "0000000000";
+    var orgKpp = ViewData["OrganizationKpp"]?.ToString() ?? "000000000";
+    var orgAddress = ViewData["OrganizationAddress"]?.ToString() ?? "000000, г. Город, ул. Учебная, д. 1";
+    var orgPhone = ViewData["OrganizationPhone"]?.ToString() ?? "+7 (000) 000-00-00";
+    var orgEmail = ViewData["OrganizationEmail"]?.ToString() ?? "info@college.local";
+    var orgWebsite = ViewData["OrganizationWebsite"]?.ToString() ?? "www.college.local";
+    var directorPosition = ViewData["DirectorPosition"]?.ToString() ?? "Директор";
+    var directorName = ViewData["DirectorName"]?.ToString() ?? "И.И. Иванова";
+    var executorName = ViewData["ExecutorName"]?.ToString() ?? "специалист учебного отдела";
+    var executorPhone = ViewData["ExecutorPhone"]?.ToString() ?? "+7 (000) 000-00-00";
+}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Справка</title>
+    <style>
+        body {
+            margin: 0;
+            background: #f3f3f3;
+            font-family: "Times New Roman", Times, serif;
+            color: #000;
+        }
+
+        .toolbar {
+            max-width: 900px;
+            margin: 20px auto 10px auto;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .toolbar a,
+        .toolbar button {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: 1px solid #999;
+            background: #fff;
+            cursor: pointer;
+            text-decoration: none;
+            color: #000;
+        }
+
+        .toolbar button.primary {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto 24px auto;
+            background: #fff;
+            box-sizing: border-box;
+            padding: 25mm 22mm 20mm 22mm;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .header {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .org-block {
+            width: 58%;
+            text-align: center;
+            font-size: 11.5pt;
+            line-height: 1.35;
+        }
+
+        .org-logo {
+            font-size: 28pt;
+            margin-bottom: 6px;
+        }
+
+        .org-name {
+            font-weight: bold;
+        }
+
+        .org-details {
+            margin-top: 6px;
+            font-size: 10.5pt;
+        }
+
+        .destination {
+            position: absolute;
+            right: 0;
+            top: 70px;
+            width: 34%;
+            text-align: center;
+            font-size: 14pt;
+        }
+
+        .title {
+            margin-top: 34px;
+            text-align: center;
+            font-size: 14pt;
+            letter-spacing: 2px;
+        }
+
+        .title strong {
+            font-size: 15pt;
+        }
+
+        .content {
+            margin-top: 24px;
+            font-size: 14pt;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .content p {
+            margin: 0 0 10px 0;
+            text-indent: 1.25cm;
+        }
+
+        .signature-row {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 14pt;
+        }
+
+        .signature-left {
+            width: 30%;
+        }
+
+        .signature-center {
+            width: 30%;
+            text-align: center;
+        }
+
+        .signature-right {
+            width: 30%;
+            text-align: right;
+        }
+
+        .signature-line {
+            display: inline-block;
+            width: 160px;
+            border-bottom: 1px solid #000;
+            height: 22px;
+            vertical-align: bottom;
+        }
+
+        .executor {
+            margin-top: 70px;
+            font-size: 11pt;
+            line-height: 1.35;
+        }
+
+        @@media print {
+            body {
+                background: #fff;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .page {
+                margin: 0;
+                box-shadow: none;
+                width: auto;
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <a asp-controller="Methodist"
+           asp-action="Details"
+           asp-route-id="@Model.Id">
+            Назад к заявке
+        </a>
+                <button type="button" class="primary" onclick="window.print()">
+                    Печать / сохранить в PDF
+                </button>
+            </div>
+          <div class="page">
+                    <div class="header">
+                        <div class="org-name">
+                @orgNameLine1
+            </div>
+            <div class="org-name">
+                @orgNameLine2
+            </div>
+            <div class="org-name">
+                @orgNameLine3
+            </div>
+
+            <div class="org-details">
+                ИНН @orgInn КПП @orgKpp<br />
+                @orgAddress<br />
+                тел.: @orgPhone<br />
+                e-mail: @orgEmail<br />
+                сайт: @orgWebsite
+            </div>
+
+            <div class="destination">
+                @RecipientText()
+            </div>
+        </div>
+
+        <div class="title">
+            <strong>СПРАВКА № @Model.Number</strong>
+            от @today.ToString("dd MMMM yyyy") г.
+        </div>
+
+        <div class="content">
+            <p>
+                Выдана @Safe(student?.FullName) в том, что он(а) действительно является
+                студентом @(profile?.Course > 0 ? profile.Course.ToString() : "___") курса
+                образовательной организации @orgNameLine3.
+            </p>
+
+            <p>
+                Обучается по @(string.IsNullOrWhiteSpace(profile?.StudyForm) ? "не указанной" : profile!.StudyForm)
+                форме обучения по специальности «@Safe(profile?.EducationProgram)».
+                Нормативный срок обучения - 3 года 10 месяцев.
+            </p>
+
+            <p>
+                Срок начала обучения: «@DateText(studyStart)».
+            </p>
+
+            <p>
+                Срок окончания обучения: «@DateText(studyEnd)».
+            </p>
+
+            <p>
+                Справка выдана @(
+                    string.IsNullOrWhiteSpace(Model.RecipientOrganization)
+                        ? "по месту требования"
+                        : $"для предоставления в {Model.RecipientOrganization}"
+                ).
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Purpose))
+            {
+                <p>
+                    Цель получения документа: @Model.Purpose.
+                </p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.DestinationPlace))
+            {
+                <p>
+                    Место предоставления документа: @Model.DestinationPlace.
+                </p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Workplace))
+            {
+                <p>
+                    Дополнительные сведения: место работы - @Model.Workplace.
+                </p>
+            }
+
+            <p>
+                Справка сформирована в информационной системе EduDocFlow на основании
+                данных заявления студента и сведений учебного отдела.
+            </p>
+        </div>
+
+           <div class="signature-row">
+             <div class="signature-left">
+                @directorPosition
+            </div>
+
+            <div class="signature-center">
+                <span class="signature-line"></span>
+            </div>
+
+            <div class="signature-right">
+                @directorName
+            </div>
+           </div>
+        <div class="executor">
+        Исп.: @executorName<br />
+        тел.: @executorPhone
+    </div>
+    </div>
+</body>
+</html>

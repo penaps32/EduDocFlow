@@ -9,9 +9,10 @@ using System.Security.Claims;
 namespace EduDocFlow.Web.Controllers
 {
     [Authorize(Roles = nameof(UserRole.Methodist))]
-    public class MethodistController(ApplicationDbContext context) : Controller
+    public class MethodistController(ApplicationDbContext context, IConfiguration configuration) : Controller
     {
         private readonly ApplicationDbContext _context = context;
+        private readonly IConfiguration _configuration = configuration;
 
         public async Task<IActionResult> Index()
         {
@@ -151,6 +152,44 @@ namespace EduDocFlow.Web.Controllers
             };
 
             return View("/Views/Methodist/Details.cshtml", model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> PrintDocument(int id)
+        {
+            var request = await _context.DocumentRequests
+                .Include(x => x.DocumentType)
+                .Include(x => x.Student)
+                    .ThenInclude(x => x.StudentProfile)
+                .Include(x => x.AssignedEmployee)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (request == null)
+            {
+                return NotFound();
+            }
+
+            if (request.Status != DocumentStatus.Completed)
+            {
+                TempData["ErrorMessage"] = "Документ можно сформировать только после перевода заявки в статус «Готова».";
+                return RedirectToAction(nameof(Details), new { id = request.Id });
+            }
+            var organizationSection = _configuration.GetSection("Organization");
+
+            ViewData["OrganizationNameLine1"] = organizationSection["NameLine1"] ?? "Образовательная организация";
+            ViewData["OrganizationNameLine2"] = organizationSection["NameLine2"] ?? "среднего профессионального образования";
+            ViewData["OrganizationNameLine3"] = organizationSection["NameLine3"] ?? "«Учебный колледж»";
+            ViewData["OrganizationInn"] = organizationSection["Inn"] ?? "0000000000";
+            ViewData["OrganizationKpp"] = organizationSection["Kpp"] ?? "000000000";
+            ViewData["OrganizationAddress"] = organizationSection["Address"] ?? "000000, г. Город, ул. Учебная, д. 1";
+            ViewData["OrganizationPhone"] = organizationSection["Phone"] ?? "+7 (000) 000-00-00";
+            ViewData["OrganizationEmail"] = organizationSection["Email"] ?? "info@college.local";
+            ViewData["OrganizationWebsite"] = organizationSection["Website"] ?? "www.college.local";
+            ViewData["DirectorPosition"] = organizationSection["DirectorPosition"] ?? "Директор";
+            ViewData["DirectorName"] = organizationSection["DirectorName"] ?? "И.И. Иванова";
+            ViewData["ExecutorName"] = organizationSection["ExecutorName"] ?? "специалист учебного отдела";
+            ViewData["ExecutorPhone"] = organizationSection["ExecutorPhone"] ?? "+7 (000) 000-00-00";
+            return View("/Views/Methodist/PrintDocument.cshtml", request);
         }
 
         [HttpPost]

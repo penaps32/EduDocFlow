@@ -238,6 +238,33 @@
                     </form>
                 </div>
             </div>
+                        <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Готовый документ</h5>
+                </div>
+
+                <div class="card-body">
+                    @if (Model.Status == DocumentStatus.Completed)
+                    {
+                        <p class="text-muted">
+                            Заявка завершена. Можно сформировать печатную форму документа.
+                        </p>
+
+                        <a asp-controller="Methodist"
+                           asp-action="PrintDocument"
+                           asp-route-id="@Model.Id"
+                           class="btn btn-outline-primary w-100">
+                            Сформировать документ
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">
+                            Документ можно сформировать после перевода заявки в статус «Готова».
+                        </p>
+                    }
+                </div>
+            </div>
 
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white">
