@@ -21,6 +21,24 @@
     {
         return string.IsNullOrWhiteSpace(value) ? "Не указано" : value;
     }
+
+    DateTime? GetStudyPeriodEnd()
+{
+    if (Model.StudyPeriodEnd.HasValue)
+    {
+        return Model.StudyPeriodEnd.Value;
+    }
+
+    if (Model.StudyPeriodStart.HasValue)
+    {
+        return Model.StudyPeriodStart.Value
+            .AddYears(3)
+            .AddMonths(10)
+            .AddDays(-1);
+    }
+
+    return null;
+}
 }
 
 <div class="container mt-4">
@@ -41,7 +59,12 @@
             @TempData["SuccessMessage"]
         </div>
     }
-
+    @if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 mb-4">
@@ -119,7 +142,7 @@
                         <dd class="col-sm-8">
                             @(Model.StudyPeriodStart.HasValue ? Model.StudyPeriodStart.Value.ToString("dd.MM.yyyy") : "Не указано")
                             -
-                            @(Model.StudyPeriodEnd.HasValue ? Model.StudyPeriodEnd.Value.ToString("dd.MM.yyyy") : "по настоящее время")
+                            @(GetStudyPeriodEnd().HasValue ? GetStudyPeriodEnd()!.Value.ToString("dd.MM.yyyy") : "Не указано")
                         </dd>
                     </dl>
                 </div>
@@ -200,7 +223,12 @@
 
                         <div class="mb-3">
                             <label class="form-label">Комментарий методиста</label>
-                            <textarea name="Comment" class="form-control" rows="4"
+                            <div class="form-text mb-2">
+                                Комментарий можно оставить пустым. При отклонении заявки причина обязательна.
+                            </div>
+                            <textarea name="Comment"
+                                      class="form-control"
+                                      rows="4"
                                       placeholder="Например: заявка принята в работу, документ готов или указана причина отклонения"></textarea>
                         </div>
 

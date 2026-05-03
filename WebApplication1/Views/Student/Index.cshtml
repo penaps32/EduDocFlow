@@ -75,42 +75,52 @@
         </div>
 
         <div class="col-lg-8">
-            <div class="row g-3 mb-3">
-                <div class="col-6 col-md-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <div class="fs-2 fw-bold">@Model.TotalRequests</div>
-                            <div class="text-muted">Всего заявок</div>
-                        </div>
-                    </div>
-                </div>
+           <div class="row row-cols-2 row-cols-md-5 g-3 mb-3">
+    <div class="col">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.TotalRequests</div>
+                <div class="text-muted">Всего заявок</div>
+            </div>
+        </div>
+    </div>
 
-                <div class="col-6 col-md-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <div class="fs-2 fw-bold">@Model.CreatedRequests</div>
-                            <div class="text-muted">Созданы</div>
-                        </div>
-                    </div>
-                </div>
+    <div class="col">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.CreatedRequests</div>
+                <div class="text-muted">Созданы</div>
+            </div>
+        </div>
+    </div>
 
-                <div class="col-6 col-md-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <div class="fs-2 fw-bold">@Model.InProgressRequests</div>
-                            <div class="text-muted">В работе</div>
-                        </div>
-                    </div>
-                </div>
+    <div class="col">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.InProgressRequests</div>
+                <div class="text-muted">В работе</div>
+            </div>
+        </div>
+    </div>
 
-                <div class="col-6 col-md-3">
-                    <div class="card text-center h-100">
-                        <div class="card-body">
-                            <div class="fs-2 fw-bold">@Model.CompletedRequests</div>
-                            <div class="text-muted">Готовы</div>
-                        </div>
-                    </div>
-                </div>
+    <div class="col">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.CompletedRequests</div>
+                <div class="text-muted">Готовы</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">@Model.RejectedRequests</div>
+                <div class="text-muted">Отклонены</div>
+            </div>
+        </div>
+    </div>
+</div>
             </div>
 
             <div class="card">
@@ -131,7 +141,8 @@
                                         <th>Статус</th>
                                         <th>Дата создания</th>
                                         <th>Плановый срок</th>
-                                    </tr>
+                                        <th class="text-end">Действия</th>
+                                    </tr>   
                                 </thead>
                                 <tbody>
                                     @foreach (var request in Model.RecentRequests)
@@ -147,6 +158,14 @@
                                             <td class="text-nowrap">@request.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
                                             <td class="text-nowrap">
                                                 @(request.DueDate.HasValue ? request.DueDate.Value.ToString("dd.MM.yyyy") : "Не установлен")
+                                            </td>
+                                            <td class="text-end">
+                                                <a asp-controller="Student"
+                                                   asp-action="Details"
+                                                   asp-route-id="@request.Id"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    Открыть
+                                                </a>
                                             </td>
                                         </tr>
                                     }
@@ -170,29 +189,30 @@
 </div>
 
 @functions {
-    private static string GetStatusName(DocumentStatus status)
+   private static string GetStatusName(DocumentStatus status)
+{
+    return status switch
     {
-        return status switch
-        {
-            DocumentStatus.Created => "Создана",
-            DocumentStatus.OnTeacherReview => "На проверке у куратора",
-            DocumentStatus.OnMethodistReview => "На проверке в учебной части",
-            DocumentStatus.Completed => "Готова",
-            DocumentStatus.Rejected => "Отклонена",
-            _ => "Неизвестно"
-        };
-    }
+        DocumentStatus.Created => "Создана",
+        DocumentStatus.OnTeacherReview => "На проверке преподавателя",
+        DocumentStatus.OnMethodistReview => "В работе у учебной части",
+        DocumentStatus.Completed => "Готова",
+        DocumentStatus.Rejected => "Отклонена",
+        _ => "Неизвестный статус"
+    };
+}
 
     private static string GetStatusCss(DocumentStatus status)
+{
+    return status switch
     {
-        return status switch
-        {
-            DocumentStatus.Created => "text-bg-secondary",
-            DocumentStatus.OnTeacherReview => "text-bg-warning",
-            DocumentStatus.OnMethodistReview => "text-bg-info",
-            DocumentStatus.Completed => "text-bg-success",
-            DocumentStatus.Rejected => "text-bg-danger",
-            _ => "text-bg-secondary"
-        };
+        DocumentStatus.Created => "text-bg-secondary",
+        DocumentStatus.OnTeacherReview => "text-bg-info",
+        DocumentStatus.OnMethodistReview => "text-bg-warning",
+        DocumentStatus.Completed => "text-bg-success",
+        DocumentStatus.Rejected => "text-bg-danger",
+        _ => "text-bg-secondary"
+    };
+}
     }
 }

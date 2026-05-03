@@ -32,7 +32,7 @@ namespace EduDocFlow.Web.Controllers
 
             var requests = await _context.DocumentRequests
                 .Include(x => x.DocumentType)
-                .Include(x => x.Student)
+                .Include(x => x.Student!)
                     .ThenInclude(x => x.StudentProfile)
                 .OrderByDescending(x => x.CreatedAt)
                 .Take(20)
@@ -51,6 +51,12 @@ namespace EduDocFlow.Web.Controllers
                 })
                 .ToListAsync();
 
+            var teacherReviewRequests = await _context.DocumentRequests
+                .CountAsync(x => x.Status == DocumentStatus.OnTeacherReview);
+
+            var methodistReviewRequests = await _context.DocumentRequests
+                .CountAsync(x => x.Status == DocumentStatus.OnMethodistReview);
+
             var model = new MethodistDashboardViewModel
             {
                 FullName = currentUser.FullName,
@@ -60,13 +66,17 @@ namespace EduDocFlow.Web.Controllers
                 CreatedRequests = await _context.DocumentRequests
                     .CountAsync(x => x.Status == DocumentStatus.Created),
 
-                InProgressRequests = await _context.DocumentRequests
-                    .CountAsync(x =>
-                        x.Status == DocumentStatus.OnTeacherReview ||
-                        x.Status == DocumentStatus.OnMethodistReview),
+                TeacherReviewRequests = teacherReviewRequests,
+
+                MethodistReviewRequests = methodistReviewRequests,
+
+                InProgressRequests = teacherReviewRequests + methodistReviewRequests,
 
                 CompletedRequests = await _context.DocumentRequests
                     .CountAsync(x => x.Status == DocumentStatus.Completed),
+
+                RejectedRequests = await _context.DocumentRequests
+                    .CountAsync(x => x.Status == DocumentStatus.Rejected),
 
                 Requests = requests
             };
@@ -79,7 +89,7 @@ namespace EduDocFlow.Web.Controllers
         {
             var request = await _context.DocumentRequests
                 .Include(x => x.DocumentType)
-                .Include(x => x.Student)
+                .Include(x => x.Student!)
                     .ThenInclude(x => x.StudentProfile)
                 .Include(x => x.AssignedEmployee)
                 .Include(x => x.StatusHistoryItems)
@@ -165,34 +175,53 @@ namespace EduDocFlow.Web.Controllers
             }
 
             var oldStatus = request.Status;
+            var newStatus = model.NewStatus;
             var now = DateTime.Now;
             var comment = model.Comment?.Trim() ?? string.Empty;
 
-            request.Status = model.NewStatus;
+            if (newStatus == DocumentStatus.Rejected && string.IsNullOrWhiteSpace(comment))
+            {
+                TempData["ErrorMessage"] = "При отклонении заявки нужно указать причину.";
+                return RedirectToAction(nameof(Details), new { id = request.Id });
+            }
+
+            if (oldStatus == newStatus && string.IsNullOrWhiteSpace(comment))
+            {
+                TempData["ErrorMessage"] = "Статус не изменен. Выберите другой статус или добавьте комментарий.";
+                return RedirectToAction(nameof(Details), new { id = request.Id });
+            }
+
+            var statusChanged = oldStatus != newStatus;
+
             request.UpdatedAt = now;
             request.AssignedEmployeeId = userId;
-            request.EmployeeComment = comment;
 
-            if (model.NewStatus == DocumentStatus.Completed)
+            if (statusChanged)
             {
-                request.CompletedAt = now;
-            }
-            else
-            {
-                request.CompletedAt = null;
-            }
+                request.Status = newStatus;
+                request.EmployeeComment = comment;
 
-            request.StatusHistoryItems.Add(new RequestStatusHistory
-            {
-                DocumentRequestId = request.Id,
-                OldStatus = oldStatus,
-                NewStatus = model.NewStatus,
-                ChangedByUserId = userId,
-                Comment = string.IsNullOrWhiteSpace(comment)
-                    ? "Статус заявки изменен сотрудником учебной части."
-                    : comment,
-                ChangedAt = now
-            });
+                if (newStatus == DocumentStatus.Completed)
+                {
+                    request.CompletedAt = now;
+                }
+                else
+                {
+                    request.CompletedAt = null;
+                }
+
+                request.StatusHistoryItems.Add(new RequestStatusHistory
+                {
+                    DocumentRequestId = request.Id,
+                    OldStatus = oldStatus,
+                    NewStatus = newStatus,
+                    ChangedByUserId = userId,
+                    Comment = string.IsNullOrWhiteSpace(comment)
+                        ? "Статус заявки изменен сотрудником учебной части."
+                        : comment,
+                    ChangedAt = now
+                });
+            }
 
             if (!string.IsNullOrWhiteSpace(comment))
             {
@@ -207,7 +236,9 @@ namespace EduDocFlow.Web.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Статус заявки обновлен.";
+            TempData["SuccessMessage"] = statusChanged
+                ? "Статус заявки обновлен."
+                : "Комментарий добавлен.";
 
             return RedirectToAction(nameof(Details), new { id = request.Id });
         }

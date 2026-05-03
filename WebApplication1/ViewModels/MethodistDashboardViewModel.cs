@@ -10,9 +10,15 @@ namespace EduDocFlow.Web.ViewModels
 
         public int CreatedRequests { get; set; }
 
+        public int TeacherReviewRequests { get; set; }
+
+        public int MethodistReviewRequests { get; set; }
+
         public int InProgressRequests { get; set; }
 
         public int CompletedRequests { get; set; }
+
+        public int RejectedRequests { get; set; }
 
         public List<MethodistRequestListItemViewModel> Requests { get; set; } = new();
     }

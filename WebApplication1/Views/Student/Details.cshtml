@@ -1,118 +1,184 @@
 ﻿@model EduDocFlow.Web.Models.DocumentRequest
+@using EduDocFlow.Web.Models
 
 @{
     ViewData["Title"] = "Просмотр заявки";
 
-    string GetStatusName(EduDocFlow.Web.Models.DocumentStatus status)
+    string StatusName(DocumentStatus status)
     {
         return status switch
         {
-            EduDocFlow.Web.Models.DocumentStatus.Created => "Создана",
-            EduDocFlow.Web.Models.DocumentStatus.OnTeacherReview => "На проверке у куратора",
-            EduDocFlow.Web.Models.DocumentStatus.OnMethodistReview => "На проверке в учебной части",
-            EduDocFlow.Web.Models.DocumentStatus.Completed => "Готова",
-            EduDocFlow.Web.Models.DocumentStatus.Rejected => "Отклонена",
+            DocumentStatus.Created => "Создана",
+            DocumentStatus.OnTeacherReview => "На проверке преподавателя",
+            DocumentStatus.OnMethodistReview => "В работе у учебной части",
+            DocumentStatus.Completed => "Готова",
+            DocumentStatus.Rejected => "Отклонена",
             _ => "Неизвестный статус"
         };
+    }
+
+    string StatusBadgeClass(DocumentStatus status)
+    {
+        return status switch
+        {
+            DocumentStatus.Created => "bg-secondary",
+            DocumentStatus.OnTeacherReview => "bg-info text-dark",
+            DocumentStatus.OnMethodistReview => "bg-warning text-dark",
+            DocumentStatus.Completed => "bg-success",
+            DocumentStatus.Rejected => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string EmptyText(string value, string emptyText = "Не указано")
+    {
+        return string.IsNullOrWhiteSpace(value) ? emptyText : value;
     }
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-start mb-4">
         <div>
-            <h1>Заявка @Model.Number</h1>
-            <p class="text-muted mb-0">Подробная информация по заявке студента.</p>
+            <h1 class="mb-1">Заявка @Model.Number</h1>
+            <p class="text-muted mb-0">Подробная информация по вашей заявке</p>
         </div>
 
-        <a asp-action="Index" class="btn btn-outline-secondary">Назад</a>
+        <a asp-controller="Student" asp-action="Index" class="btn btn-outline-secondary">
+            Назад в кабинет
+        </a>
     </div>
+    @if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
 
-    <div class="row g-3">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    Данные заявки
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Данные заявки</h5>
                 </div>
 
                 <div class="card-body">
                     <dl class="row mb-0">
+                        <dt class="col-sm-4">Номер заявки</dt>
+                        <dd class="col-sm-8">@Model.Number</dd>
+
                         <dt class="col-sm-4">Тип документа</dt>
                         <dd class="col-sm-8">@Model.DocumentType?.Name</dd>
 
                         <dt class="col-sm-4">Статус</dt>
                         <dd class="col-sm-8">
-                            <span class="badge bg-secondary">@GetStatusName(Model.Status)</span>
-                        </dd>
-
-                        <dt class="col-sm-4">Получатель документа</dt>
-                        <dd class="col-sm-8">
-                            @(string.IsNullOrWhiteSpace(Model.RecipientOrganization) ? "Не указан" : Model.RecipientOrganization)
-                        </dd>
-
-                        <dt class="col-sm-4">Дополнительные сведения</dt>
-                        <dd class="col-sm-8">
-                            @(string.IsNullOrWhiteSpace(Model.DestinationPlace) ? "Не указаны" : Model.DestinationPlace)
-                        </dd>
-
-                        <dt class="col-sm-4">Цель получения</dt>
-                        <dd class="col-sm-8">
-                            @(string.IsNullOrWhiteSpace(Model.Purpose) ? "Не указана" : Model.Purpose)
-                        </dd>
-
-                        <dt class="col-sm-4">Место работы</dt>
-                        <dd class="col-sm-8">
-                            @(string.IsNullOrWhiteSpace(Model.Workplace) ? "Не указано" : Model.Workplace)
-                        </dd>
-
-                        <dt class="col-sm-4">Комментарий студента</dt>
-                        <dd class="col-sm-8">
-                            @(string.IsNullOrWhiteSpace(Model.StudentComment) ? "Комментарий не указан" : Model.StudentComment)
+                            <span class="badge @StatusBadgeClass(Model.Status)">
+                                @StatusName(Model.Status)
+                            </span>
                         </dd>
 
                         <dt class="col-sm-4">Дата создания</dt>
                         <dd class="col-sm-8">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
 
+                        <dt class="col-sm-4">Дата обновления</dt>
+                        <dd class="col-sm-8">
+                            @(Model.UpdatedAt.HasValue
+                                ? Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")
+                                : "Не обновлялась")
+                        </dd>
+
                         <dt class="col-sm-4">Срок исполнения</dt>
                         <dd class="col-sm-8">
-                            @(Model.DueDate.HasValue ? Model.DueDate.Value.ToString("dd.MM.yyyy") : "Не установлен")
+                            @(Model.DueDate.HasValue
+                                ? Model.DueDate.Value.ToString("dd.MM.yyyy")
+                                : "Не установлен")
                         </dd>
 
                         <dt class="col-sm-4">Ответственный сотрудник</dt>
                         <dd class="col-sm-8">
                             @(Model.AssignedEmployee?.FullName ?? "Пока не назначен")
                         </dd>
+
+                        <dt class="col-sm-4">Получатель документа</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.RecipientOrganization)</dd>
+
+                        <dt class="col-sm-4">Место предоставления</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.DestinationPlace)</dd>
+
+                        <dt class="col-sm-4">Цель получения</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.Purpose)</dd>
+
+                        <dt class="col-sm-4">Место работы</dt>
+                        <dd class="col-sm-8">@EmptyText(Model.Workplace)</dd>
+
+                        <dt class="col-sm-4">Комментарий студента</dt>
+                        <dd class="col-sm-8">
+                            @EmptyText(Model.StudentComment, "Комментарий не указан")
+                        </dd>
                     </dl>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    История статусов
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Период обучения</h5>
+                </div>
+
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Начало периода</dt>
+                        <dd class="col-sm-8">
+                            @(Model.StudyPeriodStart.HasValue
+                                ? Model.StudyPeriodStart.Value.ToString("dd.MM.yyyy")
+                                : "Не указано")
+                        </dd>
+
+                       <dt class="col-sm-4">Окончание периода</dt>
+                            <dd class="col-sm-8">
+                                @(Model.StudyPeriodEnd.HasValue
+                                    ? Model.StudyPeriodEnd.Value.ToString("dd.MM.yyyy")
+                                    : "Не указано")
+                            </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">История обработки</h5>
                 </div>
 
                 <div class="card-body">
                     @if (Model.StatusHistoryItems.Any())
                     {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var item in Model.StatusHistoryItems.OrderByDescending(x => x.ChangedAt))
-                            {
-                                <li class="list-group-item px-0">
-                                    <div>
-                                        <strong>@GetStatusName(item.NewStatus)</strong>
-                                    </div>
-
-                                    <div class="text-muted small">
-                                        @item.ChangedAt.ToString("dd.MM.yyyy HH:mm")
-                                    </div>
-
-                                    <div class="small">
-                                        @(string.IsNullOrWhiteSpace(item.Comment) ? "Без комментария" : item.Comment)
-                                    </div>
-                                </li>
-                            }
-                        </ul>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Статус</th>
+                                        <th>Пользователь</th>
+                                        <th>Комментарий</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.StatusHistoryItems.OrderByDescending(x => x.ChangedAt))
+                                    {
+                                        <tr>
+                                            <td>@item.ChangedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td>@StatusName(item.NewStatus)</td>
+                                            <td>@(item.ChangedByUser?.FullName ?? "Пользователь не указан")</td>
+                                            <td>@EmptyText(item.Comment, "Без комментария")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     }
                     else
                     {
@@ -121,10 +187,106 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Текущий статус</h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="mb-2">
+                        <span class="badge @StatusBadgeClass(Model.Status)">
+                            @StatusName(Model.Status)
+                        </span>
+                    </div>
+
+                    @if (Model.Status == DocumentStatus.Completed)
+                    {
+                        <p class="text-success mb-0">
+                            Документ готов. Обратитесь в учебную часть для получения.
+                        </p>
+                    }
+                    else if (Model.Status == DocumentStatus.Rejected)
+                    {
+                        <p class="text-danger mb-0">
+                            Заявка отклонена. Причину можно посмотреть в комментариях или истории обработки.
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">
+                            Заявка находится в обработке. Следите за изменением статуса в личном кабинете.
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Добавить уточнение</h5>
     </div>
-</div>namespace EduDocFlow.Web.Views.Student
-{
-    public class Details
-    {
-    }
-}
+
+    <div class="card-body">
+        @if (Model.Status == DocumentStatus.Completed || Model.Status == DocumentStatus.Rejected)
+        {
+            <p class="text-muted mb-0">
+                Заявка завершена. Новые уточнения по ней недоступны.
+            </p>
+        }
+        else
+        {
+            <form asp-controller="Student" asp-action="AddComment" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="requestId" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label">Текст уточнения</label>
+                    <textarea name="text"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Например: уточняю место предоставления справки или добавляю сведения по запросу учебной части"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Отправить уточнение
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Переписка по заявке</h5>
+    </div>
+
+    <div class="card-body">
+        @if (Model.Comments.Any())
+        {
+            @foreach (var comment in Model.Comments.OrderByDescending(x => x.CreatedAt))
+            {
+                var isStudentComment = comment.AuthorId == Model.StudentId;
+
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="fw-semibold">
+                        @(comment.Author?.FullName ?? "Пользователь не указан")
+                    </div>
+
+                    <div class="text-muted small mb-2">
+                        @(isStudentComment ? "Студент" : "Сотрудник учебной части")
+                        -
+                        @comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                    </div>
+
+                    <div>@comment.Text</div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted mb-0">Комментариев пока нет.</p>
+        }
+    </div>
+</div>

@@ -147,7 +147,7 @@ namespace EduDocFlow.Web.Controllers
                 DestinationPlace = model.DestinationPlace?.Trim() ?? string.Empty,
                 Purpose = model.Purpose?.Trim() ?? string.Empty,
                 StudyPeriodStart = studentProfile.EnrollmentDate,
-                StudyPeriodEnd = null,
+                StudyPeriodEnd = CalculateStudyPeriodEnd(studentProfile.EnrollmentDate),
                 Workplace = model.Workplace?.Trim() ?? string.Empty,
                 StudentComment = model.StudentComment?.Trim() ?? string.Empty,
                 CreatedAt = DateTime.Now,
@@ -185,9 +185,12 @@ namespace EduDocFlow.Web.Controllers
             var request = await _context.DocumentRequests
                 .Include(x => x.DocumentType)
                 .Include(x => x.Student)
+                    .ThenInclude(x => x.StudentProfile)
                 .Include(x => x.AssignedEmployee)
                 .Include(x => x.StatusHistoryItems)
                     .ThenInclude(x => x.ChangedByUser)
+                .Include(x => x.Comments)
+                    .ThenInclude(x => x.Author)
                 .FirstOrDefaultAsync(x => x.Id == id && x.StudentId == userId);
 
             if (request == null)
@@ -197,6 +200,55 @@ namespace EduDocFlow.Web.Controllers
 
             return View(request);
         }
+
+        [HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> AddComment(int requestId, string text)
+{
+    var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    if (!int.TryParse(userIdValue, out var userId))
+    {
+        return RedirectToAction("Login", "Account");
+    }
+
+    var request = await _context.DocumentRequests
+        .Include(x => x.Comments)
+        .FirstOrDefaultAsync(x => x.Id == requestId && x.StudentId == userId);
+
+    if (request == null)
+    {
+        return NotFound();
+    }
+
+    if (request.Status == DocumentStatus.Completed || request.Status == DocumentStatus.Rejected)
+    {
+        TempData["ErrorMessage"] = "По завершенной или отклоненной заявке нельзя добавлять новые уточнения.";
+        return RedirectToAction(nameof(Details), new { id = requestId });
+    }
+
+    if (string.IsNullOrWhiteSpace(text))
+    {
+        TempData["ErrorMessage"] = "Введите текст уточнения.";
+        return RedirectToAction(nameof(Details), new { id = requestId });
+    }
+
+    request.Comments.Add(new RequestComment
+    {
+        DocumentRequestId = request.Id,
+        AuthorId = userId,
+        Text = text.Trim(),
+        CreatedAt = DateTime.Now
+    });
+
+    request.UpdatedAt = DateTime.Now;
+
+    await _context.SaveChangesAsync();
+
+    TempData["SuccessMessage"] = "Уточнение добавлено к заявке.";
+
+    return RedirectToAction(nameof(Details), new { id = requestId });
+}
 
         private async Task<List<SelectListItem>> GetDocumentTypeItemsAsync()
         {
@@ -214,6 +266,14 @@ namespace EduDocFlow.Web.Controllers
         private static string GenerateRequestNumber()
         {
             return $"REQ-{DateTime.Now:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
+        }
+
+        private static DateTime CalculateStudyPeriodEnd(DateTime enrollmentDate)
+        {
+            return enrollmentDate
+                .AddYears(3)
+                .AddMonths(10)
+                .AddDays(-1);
         }
 
     }
