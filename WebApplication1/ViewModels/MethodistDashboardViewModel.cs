@@ -10,7 +10,7 @@ namespace EduDocFlow.Web.ViewModels
 
         public int CreatedRequests { get; set; }
 
-        public int TeacherReviewRequests { get; set; }
+        public int ReviewRequests { get; set; }
 
         public int MethodistReviewRequests { get; set; }
 

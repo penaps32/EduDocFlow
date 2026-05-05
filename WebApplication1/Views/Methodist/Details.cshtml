@@ -9,7 +9,6 @@
         return status switch
         {
             DocumentStatus.Created => "Создана",
-            DocumentStatus.OnTeacherReview => "На проверке преподавателя",
             DocumentStatus.OnMethodistReview => "В работе у учебной части",
             DocumentStatus.Completed => "Готова",
             DocumentStatus.Rejected => "Отклонена",
@@ -205,9 +204,6 @@
                             <select name="NewStatus" class="form-select">
                                 <option value="@DocumentStatus.Created" selected="@(Model.Status == DocumentStatus.Created)">
                                     Создана
-                                </option>
-                                <option value="@DocumentStatus.OnTeacherReview" selected="@(Model.Status == DocumentStatus.OnTeacherReview)">
-                                    На проверке преподавателя
                                 </option>
                                 <option value="@DocumentStatus.OnMethodistReview" selected="@(Model.Status == DocumentStatus.OnMethodistReview)">
                                     В работе у учебной части

@@ -9,7 +9,6 @@
         return status switch
         {
             DocumentStatus.Created => "Создана",
-            DocumentStatus.OnTeacherReview => "На проверке преподавателя",
             DocumentStatus.OnMethodistReview => "В работе у учебной части",
             DocumentStatus.Completed => "Готова",
             DocumentStatus.Rejected => "Отклонена",
@@ -22,7 +21,6 @@
         return status switch
         {
             DocumentStatus.Created => "bg-secondary",
-            DocumentStatus.OnTeacherReview => "bg-info text-dark",
             DocumentStatus.OnMethodistReview => "bg-warning text-dark",
             DocumentStatus.Completed => "bg-success",
             DocumentStatus.Rejected => "bg-danger",

@@ -1,0 +1,184 @@
+@model EduDocFlow.Web.ViewModels.UserFormViewModel
+@using EduDocFlow.Web.Models
+
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Добавление пользователя" : "Редактирование пользователя";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="mb-1">
+                @(Model.Id == 0 ? "Добавление пользователя" : "Редактирование пользователя")
+            </h1>
+            <p class="text-muted mb-0">
+                Управление учетными записями пользователей системы
+            </p>
+        </div>
+
+        <a asp-controller="Admin" asp-action="Index" class="btn btn-outline-secondary">
+            Назад в админку
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Данные пользователя</h5>
+        </div>
+
+        <div class="card-body">
+            <form asp-controller="Admin" asp-action="SaveUser" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="Id" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password"
+                               type="password"
+                               class="form-control"
+                               placeholder="@(Model.Id == 0 ? "Пароль обязателен" : "Оставьте пустым, если менять не нужно")" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Role" class="form-label"></label>
+                        <select asp-for="Role" class="form-select">
+                            <option value="@UserRole.Student">Студент</option>
+                            <option value="@UserRole.Methodist">Методист</option>
+                            <option value="@UserRole.Admin">Администратор</option>
+                        </select>
+                        <span asp-validation-for="Role" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="studentProfileBlock">
+                    <hr class="my-4" />
+
+                    <h5 class="mb-3">Данные студента</h5>
+
+                    <div class="alert alert-light border">
+                        Эти поля используются, если пользователь имеет роль «Студент».
+                    </div>
+
+                    <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="StudentCode" class="form-label"></label>
+                        <input asp-for="StudentCode" class="form-control" />
+                        <span asp-validation-for="StudentCode" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="GroupName" class="form-label"></label>
+                        <input asp-for="GroupName" class="form-control" placeholder="Например: ИСП-401" />
+                        <span asp-validation-for="GroupName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Course" class="form-label"></label>
+                        <input asp-for="Course" type="number" class="form-control" />
+                        <span asp-validation-for="Course" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label asp-for="EducationProgram" class="form-label"></label>
+                        <input asp-for="EducationProgram"
+                               class="form-control"
+                               placeholder="Например: Информационные системы и программирование" />
+                        <span asp-validation-for="EducationProgram" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="StudyForm" class="form-label"></label>
+                        <input asp-for="StudyForm" class="form-control" />
+                        <span asp-validation-for="StudyForm" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="EnrollmentDate" class="form-label"></label>
+                        <input asp-for="EnrollmentDate" type="date" class="form-control" />
+                        <span asp-validation-for="EnrollmentDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="StudentStatus" class="form-label"></label>
+                        <input asp-for="StudentStatus" class="form-control" />
+                        <span asp-validation-for="StudentStatus" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input asp-for="IsDormitoryResident" class="form-check-input" />
+                            <label asp-for="IsDormitoryResident" class="form-check-label"></label>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a asp-controller="Admin" asp-action="Index" class="btn btn-outline-secondary">
+                        Отмена
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateStudentProfileBlockVisibility() {
+            const roleSelect = document.getElementById("Role");
+            const studentProfileBlock = document.getElementById("studentProfileBlock");
+
+            if (!roleSelect || !studentProfileBlock) {
+                return;
+            }
+
+            const selectedRole = roleSelect.value;
+            const isStudent = selectedRole === "@UserRole.Student";
+
+            studentProfileBlock.style.display = isStudent ? "block" : "none";
+
+            const fields = studentProfileBlock.querySelectorAll("input, select, textarea");
+
+            fields.forEach(field => {
+                field.disabled = !isStudent;
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", updateStudentProfileBlockVisibility);
+
+        const roleSelect = document.getElementById("Role");
+
+        if (roleSelect) {
+            roleSelect.addEventListener("change", updateStudentProfileBlockVisibility);
+        }
+    </script>
+}

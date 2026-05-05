@@ -76,9 +76,6 @@ namespace EduDocFlow.Web.Controllers
                 })
                 .ToListAsync();
 
-            var teacherReviewRequests = await _context.DocumentRequests
-                .CountAsync(x => x.Status == DocumentStatus.OnTeacherReview);
-
             var methodistReviewRequests = await _context.DocumentRequests
                 .CountAsync(x => x.Status == DocumentStatus.OnMethodistReview);
 
@@ -91,11 +88,7 @@ namespace EduDocFlow.Web.Controllers
                 CreatedRequests = await _context.DocumentRequests
                     .CountAsync(x => x.Status == DocumentStatus.Created),
 
-                TeacherReviewRequests = teacherReviewRequests,
-
                 MethodistReviewRequests = methodistReviewRequests,
-
-                InProgressRequests = teacherReviewRequests + methodistReviewRequests,
 
                 CompletedRequests = await _context.DocumentRequests
                     .CountAsync(x => x.Status == DocumentStatus.Completed),

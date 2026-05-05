@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 
 namespace EduDocFlow.Web.Controllers
 {
@@ -24,7 +25,6 @@ namespace EduDocFlow.Web.Controllers
 
             var inProgressRequests = await _context.DocumentRequests
                 .CountAsync(x =>
-                    x.Status == DocumentStatus.OnTeacherReview ||
                     x.Status == DocumentStatus.OnMethodistReview);
 
             var model = new AdminDashboardViewModel
@@ -266,6 +266,151 @@ namespace EduDocFlow.Web.Controllers
             TempData["SuccessMessage"] = model.Id == 0
                 ? "Тип документа добавлен."
                 : "Тип документа обновлен.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public IActionResult CreateUser()
+        {
+            var model = new UserFormViewModel
+            {
+                IsActive = true,
+                Role = UserRole.Student,
+                EnrollmentDate = DateTime.Today,
+                StudyForm = "очная",
+                StudentStatus = "обучается"
+            };
+
+            return View("/Views/Admin/UserForm.cshtml", model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditUser(int id)
+        {
+            var user = await _context.Users
+                .Include(x => x.StudentProfile)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var model = new UserFormViewModel
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role,
+                IsActive = user.IsActive,
+
+                StudentCode = user.StudentProfile?.StudentCode ?? string.Empty,
+                GroupName = user.StudentProfile?.GroupName ?? string.Empty,
+                EducationProgram = user.StudentProfile?.EducationProgram ?? string.Empty,
+                Course = user.StudentProfile?.Course ?? 1,
+                StudyForm = user.StudentProfile?.StudyForm ?? "очная",
+                EnrollmentDate = user.StudentProfile?.EnrollmentDate ?? DateTime.Today,
+                IsDormitoryResident = user.StudentProfile?.IsDormitoryResident ?? false,
+                StudentStatus = user.StudentProfile?.StudentStatus ?? "обучается"
+            };
+
+            return View("/Views/Admin/UserForm.cshtml", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveUser(UserFormViewModel model)
+        {
+            if (model.Id == 0 && string.IsNullOrWhiteSpace(model.Password))
+            {
+                ModelState.AddModelError(nameof(model.Password), "Введите пароль для нового пользователя.");
+            }
+
+            if (model.Role == UserRole.Student)
+            {
+                if (string.IsNullOrWhiteSpace(model.StudentCode))
+                    ModelState.AddModelError(nameof(model.StudentCode), "Введите код студента.");
+
+                if (string.IsNullOrWhiteSpace(model.GroupName))
+                    ModelState.AddModelError(nameof(model.GroupName), "Введите группу студента.");
+
+                if (model.Course <= 0)
+                    ModelState.AddModelError(nameof(model.Course), "Введите корректный курс.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("/Views/Admin/UserForm.cshtml", model);
+            }
+
+            var normalizedEmail = model.Email.Trim().ToLower();
+
+            var emailExists = await _context.Users
+                .AnyAsync(x => x.Email == normalizedEmail && x.Id != model.Id);
+
+            if (emailExists)
+            {
+                ModelState.AddModelError(nameof(model.Email), "Пользователь с такой электронной почтой уже существует.");
+                return View("/Views/Admin/UserForm.cshtml", model);
+            }
+
+            User user;
+
+            if (model.Id == 0)
+            {
+                user = new User
+                {
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Users.Add(user);
+            }
+            else
+            {
+                user = await _context.Users
+                    .Include(x => x.StudentProfile)
+                    .FirstOrDefaultAsync(x => x.Id == model.Id);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+            }
+
+            user.FullName = model.FullName.Trim();
+            user.Email = normalizedEmail;
+            user.Role = model.Role;
+            user.IsActive = model.IsActive;
+
+            if (!string.IsNullOrWhiteSpace(model.Password))
+            {
+                var passwordHasher = new PasswordHasher<User>();
+                user.PasswordHash = passwordHasher.HashPassword(user, model.Password);
+            }
+
+            if (model.Role == UserRole.Student)
+            {
+                if (user.StudentProfile == null)
+                {
+                    user.StudentProfile = new StudentProfile();
+                }
+
+                user.StudentProfile.StudentCode = model.StudentCode.Trim();
+                user.StudentProfile.GroupName = model.GroupName.Trim();
+                user.StudentProfile.EducationProgram = model.EducationProgram?.Trim() ?? string.Empty;
+                user.StudentProfile.Course = model.Course;
+                user.StudentProfile.StudyForm = model.StudyForm?.Trim() ?? "очная";
+                user.StudentProfile.EnrollmentDate = model.EnrollmentDate;
+                user.StudentProfile.IsDormitoryResident = model.IsDormitoryResident;
+                user.StudentProfile.StudentStatus = model.StudentStatus?.Trim() ?? "обучается";
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = model.Id == 0
+                ? "Пользователь добавлен."
+                : "Пользователь обновлен.";
 
             return RedirectToAction(nameof(Index));
         }

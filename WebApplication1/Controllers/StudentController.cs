@@ -49,7 +49,6 @@ namespace EduDocFlow.Web.Controllers
 
                 InProgressRequests = await requestsQuery
                     .CountAsync(x =>
-                        x.Status == DocumentStatus.OnTeacherReview ||
                         x.Status == DocumentStatus.OnMethodistReview),
 
                 CompletedRequests = await requestsQuery
