@@ -1,0 +1,154 @@
+﻿@model EduDocFlow.Web.ViewModels.DocumentTypeFormViewModel
+@using EduDocFlow.Web.Models
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Добавление типа документа" : "Редактирование типа документа";
+
+    string DisplayName(Enum value)
+    {
+        var member = value.GetType().GetMember(value.ToString()).FirstOrDefault();
+
+        if (member == null)
+        {
+            return value.ToString();
+        }
+
+        var displayAttribute = member.GetCustomAttribute<DisplayAttribute>();
+
+        return displayAttribute?.Name ?? value.ToString();
+    }
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="mb-1">
+                @(Model.Id == 0 ? "Добавление типа документа" : "Редактирование типа документа")
+            </h1>
+            <p class="text-muted mb-0">
+                Настройка справочника документов, доступных студентам при создании заявки
+            </p>
+        </div>
+
+        <a asp-controller="Admin" asp-action="Index" class="btn btn-outline-secondary">
+            Назад в админку
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Данные типа документа</h5>
+        </div>
+
+        <div class="card-body">
+            <form asp-controller="Admin" asp-action="SaveDocumentType" method="post">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="Id" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="Code" class="form-label"></label>
+                        <input asp-for="Code" class="form-control" placeholder="Например: STUDY_PERIOD_CERTIFICATE" />
+                        <span asp-validation-for="Code" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" placeholder="Например: Справка об обучении или о периоде обучения" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Category" class="form-label"></label>
+                        <select asp-for="Category" class="form-select">
+                            @foreach (var category in Enum.GetValues<DocumentTypeCategory>())
+                            {
+                                <option value="@category">@DisplayName(category)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="TemplateKind" class="form-label"></label>
+                        <select asp-for="TemplateKind" class="form-select">
+                            @foreach (var templateKind in Enum.GetValues<DocumentTemplateKind>())
+                            {
+                                <option value="@templateKind">@DisplayName(templateKind)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="TemplateKind" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Кратко опишите, для чего используется этот документ"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label asp-for="LegalBasis" class="form-label"></label>
+                        <textarea asp-for="LegalBasis"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Например: заявление студента, данные личного дела, приказ о зачислении"></textarea>
+                        <span asp-validation-for="LegalBasis" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="SortOrder" class="form-label"></label>
+                        <input asp-for="SortOrder" class="form-control" type="number" />
+                        <span asp-validation-for="SortOrder" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label">Параметры документа</label>
+
+                        <div class="form-check">
+                            <input asp-for="IsRecipientRequired" class="form-check-input" />
+                            <label asp-for="IsRecipientRequired" class="form-check-label"></label>
+                        </div>
+
+                        <div class="form-check">
+                            <input asp-for="IsStudyPeriodRequired" class="form-check-input" />
+                            <label asp-for="IsStudyPeriodRequired" class="form-check-label"></label>
+                        </div>
+
+                        <div class="form-check">
+                            <input asp-for="IsWorkplaceRequired" class="form-check-input" />
+                            <label asp-for="IsWorkplaceRequired" class="form-check-label"></label>
+                        </div>
+
+                        <div class="form-check">
+                            <input asp-for="RequiresOriginalSignature" class="form-check-input" />
+                            <label asp-for="RequiresOriginalSignature" class="form-check-label"></label>
+                        </div>
+
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a asp-controller="Admin" asp-action="Index" class="btn btn-outline-secondary">
+                        Отмена
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

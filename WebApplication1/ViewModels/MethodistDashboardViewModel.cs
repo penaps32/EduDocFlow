@@ -20,6 +20,12 @@ namespace EduDocFlow.Web.ViewModels
 
         public int RejectedRequests { get; set; }
 
+        public string SearchQuery { get; set; } = string.Empty;
+
+        public DocumentStatus? SelectedStatus { get; set; }
+
+        public int FilteredRequestsCount { get; set; }
+
         public List<MethodistRequestListItemViewModel> Requests { get; set; } = new();
     }
 

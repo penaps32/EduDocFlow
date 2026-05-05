@@ -1,0 +1,313 @@
+@model EduDocFlow.Web.ViewModels.AdminDashboardViewModel
+@using EduDocFlow.Web.Models
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
+@{
+    ViewData["Title"] = "Панель администратора";
+
+    string RoleName(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Student => "Студент",
+            UserRole.Teacher => "Преподаватель",
+            UserRole.Methodist => "Методист",
+            UserRole.Admin => "Администратор",
+            _ => "Неизвестная роль"
+        };
+    }
+
+    string StatusText(bool isActive)
+    {
+        return isActive ? "Активен" : "Отключен";
+    }
+
+    string StatusBadgeClass(bool isActive)
+    {
+        return isActive ? "bg-success" : "bg-secondary";
+    }
+
+    string DisplayName(Enum value)
+    {
+        var member = value.GetType().GetMember(value.ToString()).FirstOrDefault();
+
+        if (member == null)
+        {
+            return value.ToString();
+        }
+
+        var displayAttribute = member.GetCustomAttribute<DisplayAttribute>();
+
+        return displayAttribute?.Name ?? value.ToString();
+    }
+}
+
+<div class="container mt-4">
+    <div class="mb-4">
+        <h1 class="mb-1">Панель администратора</h1>
+        <p class="text-muted mb-0">
+            Управление пользователями, типами документов и общими показателями системы
+        </p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Всего пользователей</div>
+                    <div class="fs-3 fw-semibold">@Model.TotalUsers</div>
+                    <div class="small text-muted">Активных: @Model.ActiveUsers</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Студенты</div>
+                    <div class="fs-3 fw-semibold">@Model.StudentsCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Методисты</div>
+                    <div class="fs-3 fw-semibold">@Model.MethodistsCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Администраторы</div>
+                    <div class="fs-3 fw-semibold">@Model.AdminsCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Всего заявок</div>
+                    <div class="fs-3 fw-semibold">@Model.TotalRequests</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Созданы</div>
+                    <div class="fs-3 fw-semibold">@Model.CreatedRequests</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">В работе</div>
+                    <div class="fs-3 fw-semibold">@Model.InProgressRequests</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Готовы</div>
+                    <div class="fs-3 fw-semibold">@Model.CompletedRequests</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Отклонены</div>
+                    <div class="fs-3 fw-semibold">@Model.RejectedRequests</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Типы документов</div>
+                    <div class="fs-3 fw-semibold">@Model.DocumentTypesCount</div>
+                    <div class="small text-muted">Активных: @Model.ActiveDocumentTypesCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Последние пользователи</h5>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (!Model.RecentUsers.Any())
+                    {
+                        <div class="p-4 text-muted">
+                            Пользователей пока нет.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ФИО</th>
+                                        <th>Почта</th>
+                                        <th>Роль</th>
+                                        <th>Статус</th>
+                                        <th class="text-end">Действия</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var user in Model.RecentUsers)
+                                    {
+                                        <tr>
+                                            <td>@user.FullName</td>
+                                            <td>@user.Email</td>
+                                            <td>@RoleName(user.Role)</td>
+                                            <td>
+                                                <span class="badge @StatusBadgeClass(user.IsActive)">
+                                                    @StatusText(user.IsActive)
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                @if (user.Id == Model.CurrentUserId)
+                                                {
+                                                    <span class="text-muted small">Текущий пользователь</span>
+                                                }
+                                                else
+                                                {
+                                                    <form asp-controller="Admin"
+                                                          asp-action="ToggleUserActive"
+                                                          method="post"
+                                                          class="d-inline">
+                                                        @Html.AntiForgeryToken()
+
+                                                        <input type="hidden" name="id" value="@user.Id" />
+
+                                                        <button type="submit"
+                                                                class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                                            @(user.IsActive ? "Отключить" : "Включить")
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Типы документов</h5>
+
+                    <a asp-controller="Admin"
+                       asp-action="CreateDocumentType"
+                       class="btn btn-sm btn-primary">
+                        Добавить
+                    </a>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (!Model.DocumentTypes.Any())
+                    {
+                        <div class="p-4 text-muted">
+                            Типы документов пока не добавлены.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Код</th>
+                                        <th>Наименование</th>
+                                        <th>Категория</th>
+                                        <th>Статус</th>
+                                        <th class="text-end">Действия</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var type in Model.DocumentTypes)
+                                    {
+                                        <tr>
+                                            <td>@type.Code</td>
+                                            <td>@type.Name</td>
+                                            <td>@DisplayName(type.Category)</td>
+                                            <td>
+                                                <span class="badge @StatusBadgeClass(type.IsActive)">
+                                                    @StatusText(type.IsActive)
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a asp-controller="Admin"
+                                                   asp-action="EditDocumentType"
+                                                   asp-route-id="@type.Id"
+                                                   class="btn btn-sm btn-outline-primary me-1">
+                                                    Изменить
+                                                </a>
+
+                                                <form asp-controller="Admin"
+                                                      asp-action="ToggleDocumentTypeActive"
+                                                      method="post"
+                                                      class="d-inline">
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden" name="id" value="@type.Id" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm @(type.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                                        @(type.IsActive ? "Отключить" : "Включить")
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

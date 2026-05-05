@@ -34,6 +34,8 @@
     {
         return string.IsNullOrWhiteSpace(value) ? "Не указано" : value;
     }
+
+    var hasFilters = !string.IsNullOrWhiteSpace(Model.SearchQuery) || Model.SelectedStatus.HasValue;
 }
 
 <div class="container mt-4">
@@ -114,17 +116,85 @@
         </div>
     </div>
 
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Поиск и фильтр заявок</h5>
+        </div>
+
+        <div class="card-body">
+            <form asp-controller="Methodist" asp-action="Index" method="get" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Поиск</label>
+                    <input type="text"
+                           name="search"
+                           value="@Model.SearchQuery"
+                           class="form-control"
+                           placeholder="Номер заявки, ФИО студента, почта, группа или тип документа" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Статус</label>
+                    <select name="status" class="form-select">
+                        <option value="">Все статусы</option>
+
+                        <option value="@DocumentStatus.Created"
+                                selected="@(Model.SelectedStatus == DocumentStatus.Created ? "selected" : null)">
+                            Создана
+                        </option>
+
+                        <option value="@DocumentStatus.OnTeacherReview"
+                                selected="@(Model.SelectedStatus == DocumentStatus.OnTeacherReview ? "selected" : null)">
+                            На проверке преподавателя
+                        </option>
+
+                        <option value="@DocumentStatus.OnMethodistReview"
+                                selected="@(Model.SelectedStatus == DocumentStatus.OnMethodistReview ? "selected" : null)">
+                            В работе у учебной части
+                        </option>
+
+                        <option value="@DocumentStatus.Completed"
+                                selected="@(Model.SelectedStatus == DocumentStatus.Completed ? "selected" : null)">
+                            Готова
+                        </option>
+
+                        <option value="@DocumentStatus.Rejected"
+                                selected="@(Model.SelectedStatus == DocumentStatus.Rejected ? "selected" : null)">
+                            Отклонена
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        Применить
+                    </button>
+
+                    @if (hasFilters)
+                    {
+                        <a asp-controller="Methodist"
+                           asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Сбросить
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Заявки студентов</h5>
-            <span class="text-muted small">Показаны последние 20 заявок</span>
+            <span class="text-muted small">
+                Показано @Model.Requests.Count из @Model.FilteredRequestsCount
+            </span>
         </div>
 
         <div class="card-body p-0">
             @if (!Model.Requests.Any())
             {
                 <div class="p-4 text-muted">
-                    Заявок пока нет.
+                    По заданным условиям заявки не найдены.
                 </div>
             }
             else

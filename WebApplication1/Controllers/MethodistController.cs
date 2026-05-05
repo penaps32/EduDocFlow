@@ -14,7 +14,7 @@ namespace EduDocFlow.Web.Controllers
         private readonly ApplicationDbContext _context = context;
         private readonly IConfiguration _configuration = configuration;
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, DocumentStatus? status)
         {
             var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -31,12 +31,36 @@ namespace EduDocFlow.Web.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var requests = await _context.DocumentRequests
+            var requestsQuery = _context.DocumentRequests
                 .Include(x => x.DocumentType)
                 .Include(x => x.Student!)
                     .ThenInclude(x => x.StudentProfile)
+                .AsQueryable();
+
+            if (status.HasValue)
+            {
+                requestsQuery = requestsQuery
+                    .Where(x => x.Status == status.Value);
+            }
+
+            var searchQuery = search?.Trim() ?? string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                requestsQuery = requestsQuery.Where(x =>
+                    x.Number.Contains(searchQuery) ||
+                    x.Student != null && x.Student.FullName.Contains(searchQuery) ||
+                    x.Student != null && x.Student.Email != null && x.Student.Email.Contains(searchQuery) ||
+                    x.Student != null && x.Student.StudentProfile != null && x.Student.StudentProfile.GroupName.Contains(searchQuery) ||
+                    x.DocumentType != null && x.DocumentType.Name.Contains(searchQuery)
+                );
+            }
+
+            var filteredRequestsCount = await requestsQuery.CountAsync();
+
+            var requests = await requestsQuery
                 .OrderByDescending(x => x.CreatedAt)
-                .Take(20)
+                .Take(50)
                 .Select(x => new MethodistRequestListItemViewModel
                 {
                     Id = x.Id,
@@ -78,6 +102,12 @@ namespace EduDocFlow.Web.Controllers
 
                 RejectedRequests = await _context.DocumentRequests
                     .CountAsync(x => x.Status == DocumentStatus.Rejected),
+
+                SearchQuery = searchQuery,
+
+                SelectedStatus = status,
+
+                FilteredRequestsCount = filteredRequestsCount,
 
                 Requests = requests
             };
