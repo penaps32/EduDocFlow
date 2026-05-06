@@ -1,239 +1,274 @@
-﻿@model EduDocFlow.Web.ViewModels.MethodistDashboardViewModel
-@using EduDocFlow.Web.Models
-
-@{
-    ViewData["Title"] = "Кабинет методиста";
-
-    string StatusName(DocumentStatus status)
+@functions {
+    string RoleName(object? role)
     {
-        return status switch
+        var value = role?.ToString() ?? "";
+
+        return value switch
         {
-            DocumentStatus.Created => "Создана",
-            DocumentStatus.OnMethodistReview => "В работе у учебной части",
-            DocumentStatus.Completed => "Готова",
-            DocumentStatus.Rejected => "Отклонена",
-            _ => "Неизвестный статус"
+            "Student" => "Студент",
+            "Methodist" => "Сотрудник",
+            "Administrator" => "Администратор",
+            "Admin" => "Администратор",
+            _ => value
         };
     }
 
-    string StatusBadgeClass(DocumentStatus status)
+    string DisplayName(object? value)
     {
-        return status switch
+        var text = value?.ToString() ?? "";
+
+        return text switch
         {
-            DocumentStatus.Created => "bg-secondary",
-            DocumentStatus.OnMethodistReview => "bg-warning text-dark",
-            DocumentStatus.Completed => "bg-success",
-            DocumentStatus.Rejected => "bg-danger",
-            _ => "bg-secondary"
+            "Certificate" => "Справка",
+            "Application" => "Заявление",
+            "Service" => "Служебный документ",
+            "ServiceDocument" => "Служебный документ",
+            _ => text
         };
     }
 
-    string EmptyText(string value)
+    string StatusBadgeClass(bool isActive)
     {
-        return string.IsNullOrWhiteSpace(value) ? "Не указано" : value;
+        return isActive
+            ? "bg-success-subtle text-success"
+            : "bg-secondary-subtle text-secondary";
     }
 
-    var hasFilters = !string.IsNullOrWhiteSpace(Model.SearchQuery) || Model.SelectedStatus.HasValue;
+    string StatusText(bool isActive)
+    {
+        return isActive ? "Активен" : "Выключен";
+    }
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-start mb-4">
-        <div>
-            <h1 class="mb-1">Кабинет методиста</h1>
-            <p class="text-muted mb-0">
-                Обработка заявок студентов на оформление учебных документов
-            </p>
-        </div>
-
-        <div class="text-end">
-            <div class="text-muted small">Пользователь</div>
-            <div class="fw-semibold">@Model.FullName</div>
-        </div>
-    </div>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
-        </div>
+<style>
+    .admin-dashboard-container {
+        max-width: 1600px;
     }
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Всего заявок</div>
-                    <div class="fs-3 fw-semibold">@Model.TotalRequests</div>
-                </div>
+    .admin-dashboard-grid {
+        display: grid;
+        grid-template-columns: minmax(520px, 0.9fr) minmax(760px, 1.35fr);
+        gap: 1.5rem;
+        align-items: stretch;
+    }
+
+    .admin-table th {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #1f2937;
+        white-space: nowrap;
+    }
+
+    .admin-table td {
+        vertical-align: middle;
+    }
+
+    .admin-doc-name {
+        min-width: 260px;
+    }
+
+    .admin-doc-category {
+        width: 150px;
+        white-space: nowrap;
+    }
+
+    .admin-doc-status {
+        width: 130px;
+        white-space: nowrap;
+    }
+
+    .admin-doc-actions {
+        width: 190px;
+        white-space: nowrap;
+    }
+
+    .admin-user-actions {
+        width: 190px;
+        white-space: nowrap;
+    }
+
+    .admin-actions-wrap {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+    }
+
+    @@media (max-width: 1399.98px) {
+        .admin-dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="admin-dashboard-grid">
+    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+        <div class="card-header bg-white border-bottom d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center p-4">
+            <div>
+                <h2 class="h5 mb-1 fw-bold">Пользователи</h2>
+                <div class="text-muted small">Последние учетные записи в системе</div>
             </div>
-        </div>
 
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Создана</div>
-                    <div class="fs-3 fw-semibold">@Model.CreatedRequests</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">На проверке</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">В работе</div>
-                    <div class="fs-3 fw-semibold">@Model.MethodistReviewRequests</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Готова</div>
-                    <div class="fs-3 fw-semibold">@Model.CompletedRequests</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Отклонена</div>
-                    <div class="fs-3 fw-semibold">@Model.RejectedRequests</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">Поиск и фильтр заявок</h5>
-        </div>
-
-        <div class="card-body">
-            <form asp-controller="Methodist" asp-action="Index" method="get" class="row g-3 align-items-end">
-                <div class="col-md-6">
-                    <label class="form-label">Поиск</label>
-                    <input type="text"
-                           name="search"
-                           value="@Model.SearchQuery"
-                           class="form-control"
-                           placeholder="Номер заявки, ФИО студента, почта, группа или тип документа" />
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label">Статус</label>
-                    <select name="status" class="form-select">
-                        <option value="">Все статусы</option>
-
-                        <option value="@DocumentStatus.Created"
-                                selected="@(Model.SelectedStatus == DocumentStatus.Created ? "selected" : null)">
-                            Создана
-                        </option>
-
-                        <option value="@DocumentStatus.OnMethodistReview"
-                                selected="@(Model.SelectedStatus == DocumentStatus.OnMethodistReview ? "selected" : null)">
-                            В работе у учебной части
-                        </option>
-
-                        <option value="@DocumentStatus.Completed"
-                                selected="@(Model.SelectedStatus == DocumentStatus.Completed ? "selected" : null)">
-                            Готова
-                        </option>
-
-                        <option value="@DocumentStatus.Rejected"
-                                selected="@(Model.SelectedStatus == DocumentStatus.Rejected ? "selected" : null)">
-                            Отклонена
-                        </option>
-                    </select>
-                </div>
-
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary flex-fill">
-                        Применить
-                    </button>
-
-                    @if (hasFilters)
-                    {
-                        <a asp-controller="Methodist"
-                           asp-action="Index"
-                           class="btn btn-outline-secondary">
-                            Сбросить
-                        </a>
-                    }
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Заявки студентов</h5>
-            <span class="text-muted small">
-                Показано @Model.Requests.Count из @Model.FilteredRequestsCount
-            </span>
+            <a asp-controller="Admin"
+                   asp-action="CreateUser"
+                   class="btn btn-primary">
+                Добавить пользователя
+            </a>
         </div>
 
         <div class="card-body p-0">
-            @if (!Model.Requests.Any())
+            @if (!Model.RecentUsers.Any())
             {
                 <div class="p-4 text-muted">
-                    По заданным условиям заявки не найдены.
+                    Пользователей пока нет.
                 </div>
             }
             else
             {
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover align-middle mb-0 admin-table">
                         <thead class="table-light">
                             <tr>
-                                <th>№</th>
-                                <th>Номер заявки</th>
-                                <th>Студент</th>
-                                <th>Группа</th>
-                                <th>Тип документа</th>
-                                <th>Дата создания</th>
-                                <th>Срок исполнения</th>
+                                <th class="ps-4">Почта</th>
+                                <th>Роль</th>
                                 <th>Статус</th>
-                                <th class="text-end">Действия</th>
+                                <th class="text-end pe-4 admin-user-actions">Действия</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            @foreach (var request in Model.Requests)
+                            @foreach (var user in Model.RecentUsers)
                             {
                                 <tr>
-                                    <td>@request.Id</td>
-                                    <td>@request.Number</td>
-                                    <td>@request.StudentFullName</td>
-                                    <td>@EmptyText(request.StudentGroup)</td>
-                                    <td>@request.DocumentTypeName</td>
-                                    <td>@request.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                                    <td>
-                                        @(request.DueDate.HasValue
-                                            ? request.DueDate.Value.ToString("dd.MM.yyyy")
-                                            : "Не указан")
+                                    <td class="ps-4">
+                                        <div class="fw-semibold">@user.FullName</div>
+                                        <div class="text-muted small">@user.Email</div>
                                     </td>
+
+                                    <td>@RoleName(user.Role)</td>
+
                                     <td>
-                                        <span class="badge @StatusBadgeClass(request.Status)">
-                                            @StatusName(request.Status)
+                                        <span class="badge rounded-pill px-3 py-2 @StatusBadgeClass(user.IsActive)">
+                                            @StatusText(user.IsActive)
                                         </span>
                                     </td>
-                                    <td class="text-end">
-                                        <a asp-controller="Methodist"
-                                           asp-action="Details"
-                                           asp-route-id="@request.Id"
-                                           class="btn btn-sm btn-outline-primary">
-                                            Открыть
-                                        </a>
+
+                                    <td class="text-end pe-4 admin-user-actions">
+                                        @if (user.Id == Model.CurrentUserId)
+                                        {
+                                            <span class="text-muted small">Текущий пользователь</span>
+                                        }
+                                        else
+                                        {
+                                            <div class="admin-actions-wrap">
+                                                <a asp-controller="Admin"
+                                                       asp-action="EditUser"
+                                                       asp-route-id="@user.Id"
+                                                       class="btn btn-sm btn-outline-primary">
+                                                    Изменить
+                                                </a>
+
+                                                <form asp-controller="Admin"
+                                                      asp-action="ToggleUserActive"
+                                                      method="post"
+                                                      class="d-inline">
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden" name="id" value="@user.Id" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                                        @(user.IsActive ? "Отключить" : "Включить")
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+        <div class="card-header bg-white border-bottom d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center p-4">
+            <div>
+                <h2 class="h5 mb-1 fw-bold">Типы документов</h2>
+                <div class="text-muted small">Справки и заявления, доступные студентам</div>
+            </div>
+
+            <a asp-controller="Admin"
+                   asp-action="CreateDocumentType"
+                   class="btn btn-primary">
+                Добавить тип
+            </a>
+        </div>
+
+        <div class="card-body p-0">
+            @if (!Model.DocumentTypes.Any())
+            {
+                <div class="p-4 text-muted">
+                    Типы документов пока не добавлены.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 admin-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4 admin-doc-name">Наименование</th>
+                                <th class="admin-doc-category">Категория</th>
+                                <th class="admin-doc-status">Статус</th>
+                                <th class="text-end pe-4 admin-doc-actions">Действия</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in Model.DocumentTypes)
+                            {
+                                <tr>
+                                    <td class="ps-4 admin-doc-name">
+                                        <div class="fw-semibold">@item.Name</div>
+                                        <div class="text-muted small">@item.Code</div>
+                                    </td>
+
+                                    <td class="admin-doc-category">
+                                        @DisplayName(item.Category)
+                                    </td>
+
+                                    <td class="admin-doc-status">
+                                        <span class="badge rounded-pill px-3 py-2 @StatusBadgeClass(item.IsActive)">
+                                            @StatusText(item.IsActive)
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end pe-4 admin-doc-actions">
+                                        <div class="admin-actions-wrap">
+                                            <a asp-controller="Admin"
+                                                   asp-action="EditDocumentType"
+                                                   asp-route-id="@item.Id"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                Изменить
+                                            </a>
+
+                                            <form asp-controller="Admin"
+                                                  asp-action="ToggleDocumentTypeActive"
+                                                  asp-route-id="@item.Id"
+                                                  method="post"
+                                                  class="d-inline">
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="btn btn-sm @(item.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                                    @(item.IsActive ? "Отключить" : "Включить")
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             }

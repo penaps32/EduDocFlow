@@ -4,79 +4,185 @@
     ViewData["Title"] = "Новая заявка";
 }
 
-<div class="container mt-4">
-    <div class="mb-4">
-        <h1 class="mb-1">Новая заявка</h1>
-        <p class="text-muted mb-0">
-            Заполните данные для оформления справки или заявления.
-        </p>
-    </div>
-
-    <div class="card">
-        <div class="card-header">
-            Данные заявки
-        </div>
-
-        <div class="card-body">
-            <form asp-action="Create" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                <div class="mb-3">
-                    <label asp-for="DocumentTypeId" class="form-label"></label>
-                    <select asp-for="DocumentTypeId" asp-items="Model.DocumentTypes" class="form-select">
-                        <option value="0">Выберите тип документа</option>
-                    </select>
-                    <span asp-validation-for="DocumentTypeId" class="text-danger"></span>
+<div class="container-xl">
+    <div class="page-header d-print-none mb-4">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="page-pretitle">
+                    Кабинет студента
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="RecipientOrganization" class="form-label"></label>
-                    <input asp-for="RecipientOrganization" class="form-control" />
-                    <span asp-validation-for="RecipientOrganization" class="text-danger"></span>
-                    <div class="form-text">
-                        Например: военный комиссариат, место работы, организация по месту требования.
-                    </div>
+                <h1 class="page-title">
+                    Новая заявка
+                </h1>
+                <div class="text-secondary mt-2">
+                    Заполните данные для оформления справки или заявления. После отправки заявка поступит в учебную часть.
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label asp-for="DestinationPlace" class="form-label"></label>
-                    <input asp-for="DestinationPlace" class="form-control" />
-                    <span asp-validation-for="DestinationPlace" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="Purpose" class="form-label"></label>
-                    <textarea asp-for="Purpose" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="Purpose" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="Workplace" class="form-label"></label>
-                    <input asp-for="Workplace" class="form-control" />
-                    <span asp-validation-for="Workplace" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="StudentComment" class="form-label">Комментарий к заявке необязательно</label>
-                    <textarea asp-for="StudentComment" class="form-control" rows="4"></textarea>
-                    <span asp-validation-for="StudentComment" class="text-danger"></span>
-                    <div class="form-text">
-                        Можно указать дополнительные пожелания: количество экземпляров, срочность или уточнения для учебной части.
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        Отправить заявку
-                    </button>
-
-                    <a asp-controller="Student" asp-action="Index" class="btn btn-outline-secondary">
-                        Назад
-                    </a>
-                </div>
-            </form>
+            <div class="col-auto">
+                <a asp-controller="Student"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    Назад в кабинет
+                </a>
+            </div>
         </div>
     </div>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title mb-1">
+                                Данные заявки
+                            </h3>
+                            <div class="text-secondary">
+                                Укажите тип документа и сведения, которые нужны для подготовки справки или заявления.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="DocumentTypeId" class="form-label required">
+                                Тип документа
+                            </label>
+                            <select asp-for="DocumentTypeId"
+                                    asp-items="Model.DocumentTypes"
+                                    class="form-select form-select-lg">
+                                <option value="">Выберите тип документа</option>
+                            </select>
+                            <span asp-validation-for="DocumentTypeId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="RecipientOrganization" class="form-label">
+                                    Получатель документа
+                                </label>
+                                <input asp-for="RecipientOrganization"
+                                       class="form-control"
+                                       placeholder="Например: по месту требования" />
+                                <span asp-validation-for="RecipientOrganization" class="text-danger small"></span>
+                                <div class="form-hint">
+                                    Можно указать организацию, комиссариат, место работы или написать «по месту требования».
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="DestinationPlace" class="form-label">
+                                    Дополнительные сведения
+                                </label>
+                                <input asp-for="DestinationPlace"
+                                       class="form-control"
+                                       placeholder="Например: для предоставления в организацию" />
+                                <span asp-validation-for="DestinationPlace" class="text-danger small"></span>
+                                <div class="form-hint">
+                                    Укажите уточнение, если оно должно попасть в документ.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label asp-for="Purpose" class="form-label">
+                                Цель получения
+                            </label>
+                            <textarea asp-for="Purpose"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Например: для предоставления по месту требования"></textarea>
+                            <span asp-validation-for="Purpose" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label asp-for="Workplace" class="form-label">
+                                Место работы
+                            </label>
+                            <input asp-for="Workplace"
+                                   class="form-control"
+                                   placeholder="Можно оставить пустым, если не требуется" />
+                            <span asp-validation-for="Workplace" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mt-4">
+                            <label asp-for="StudentComment" class="form-label">
+                                Комментарий к заявке
+                                <span class="text-secondary fw-normal">(необязательно)</span>
+                            </label>
+                            <textarea asp-for="StudentComment"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Например: нужно два экземпляра справки или есть дополнительные пожелания"></textarea>
+                            <span asp-validation-for="StudentComment" class="text-danger small"></span>
+                            <div class="form-hint">
+                                Комментарий увидит сотрудник учебной части при обработке заявки.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                        <a asp-controller="Student"
+                           asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            Отмена
+                        </a>
+
+                        <button type="submit" class="btn btn-primary">
+                            Отправить заявку
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">
+                            Как это работает
+                        </h3>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="edf-step">
+                            <div class="edf-step-number bg-blue-lt text-blue">1</div>
+                            <div>
+                                <div class="fw-semibold">Выберите документ</div>
+                                <div class="text-secondary small">
+                                    Укажите тип справки или заявления из списка.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="edf-step">
+                            <div class="edf-step-number bg-green-lt text-green">2</div>
+                            <div>
+                                <div class="fw-semibold">Заполните сведения</div>
+                                <div class="text-secondary small">
+                                    Эти данные помогут учебной части правильно подготовить документ.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="edf-step mb-0">
+                            <div class="edf-step-number bg-purple-lt text-purple">3</div>
+                            <div>
+                                <div class="fw-semibold">Отправьте заявку</div>
+                                <div class="text-secondary small">
+                                    После отправки можно будет отслеживать статус в личном кабинете.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 
 @section Scripts {

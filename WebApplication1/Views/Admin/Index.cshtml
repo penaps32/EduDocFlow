@@ -11,7 +11,7 @@
         return role switch
         {
             UserRole.Student => "Студент",
-            UserRole.Methodist => "Методист",
+			UserRole.Methodist => "Сотрудник",
             UserRole.Admin => "Администратор",
             _ => "Неизвестная роль"
         };
@@ -24,7 +24,9 @@
 
     string StatusBadgeClass(bool isActive)
     {
-        return isActive ? "bg-success" : "bg-secondary";
+        return isActive
+            ? "bg-success-subtle text-success"
+            : "bg-secondary-subtle text-secondary";
     }
 
     string DisplayName(Enum value)
@@ -37,144 +39,156 @@
         }
 
         var displayAttribute = member.GetCustomAttribute<DisplayAttribute>();
-
         return displayAttribute?.Name ?? value.ToString();
     }
 }
 
-<div class="container mt-4">
-    <div class="mb-4">
-        <h1 class="mb-1">Панель администратора</h1>
-        <p class="text-muted mb-0">
-            Управление пользователями, типами документов и общими показателями системы
-        </p>
+<div class="container-fluid admin-dashboard-container py-5 px-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-4 align-items-lg-end mb-4">
+        <div>
+            <div class="text-muted text-uppercase fw-semibold small mb-2">Администрирование</div>
+            <h1 class="mb-2 fw-bold">Панель администратора</h1>
+            <p class="text-muted mb-0">
+                Управление пользователями, доступностью типов документов и общими показателями системы.
+            </p>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 admin-active-card">
+            <div class="card-body py-3 px-4">
+                <div class="text-muted small">Активных пользователей</div>
+                <div class="fw-bold">@Model.ActiveUsers из @Model.TotalUsers</div>
+            </div>
+        </div>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success">
+        <div class="alert alert-success rounded-3">
             @TempData["SuccessMessage"]
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger">
+        <div class="alert alert-danger rounded-3">
             @TempData["ErrorMessage"]
         </div>
     }
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Всего пользователей</div>
-                    <div class="fs-3 fw-semibold">@Model.TotalUsers</div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Всего пользователей</div>
+                    <div class="fs-3 fw-bold">@Model.TotalUsers</div>
                     <div class="small text-muted">Активных: @Model.ActiveUsers</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Студенты</div>
-                    <div class="fs-3 fw-semibold">@Model.StudentsCount</div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Студенты</div>
+                    <div class="fs-3 fw-bold">@Model.StudentsCount</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Методисты</div>
-                    <div class="fs-3 fw-semibold">@Model.MethodistsCount</div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Сотрудники</div>
+                    <div class="fs-3 fw-bold">@Model.MethodistsCount</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Администраторы</div>
-                    <div class="fs-3 fw-semibold">@Model.AdminsCount</div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Администраторы</div>
+                    <div class="fs-3 fw-bold">@Model.AdminsCount</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Всего заявок</div>
-                    <div class="fs-3 fw-semibold">@Model.TotalRequests</div>
+        <div class="col-6 col-lg-2">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Всего заявок</div>
+                    <div class="fs-4 fw-bold">@Model.TotalRequests</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Созданы</div>
-                    <div class="fs-3 fw-semibold">@Model.CreatedRequests</div>
+        <div class="col-6 col-lg-2">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Созданы</div>
+                    <div class="fs-4 fw-bold">@Model.CreatedRequests</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">В работе</div>
-                    <div class="fs-3 fw-semibold">@Model.InProgressRequests</div>
+        <div class="col-6 col-lg-2">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">В работе</div>
+                    <div class="fs-4 fw-bold">@Model.InProgressRequests</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Готовы</div>
-                    <div class="fs-3 fw-semibold">@Model.CompletedRequests</div>
+        <div class="col-6 col-lg-2">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Готовы</div>
+                    <div class="fs-4 fw-bold">@Model.CompletedRequests</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Отклонены</div>
-                    <div class="fs-3 fw-semibold">@Model.RejectedRequests</div>
+        <div class="col-6 col-lg-2">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Отклонены</div>
+                    <div class="fs-4 fw-bold">@Model.RejectedRequests</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-2">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Типы документов</div>
-                    <div class="fs-3 fw-semibold">@Model.DocumentTypesCount</div>
+        <div class="col-6 col-lg-2">
+            <div class="card shadow-sm border-0 h-100 admin-stat-card">
+                <div class="card-body p-4">
+                    <div class="text-muted small mb-2">Типы документов</div>
+                    <div class="fs-4 fw-bold">@Model.DocumentTypesCount</div>
                     <div class="small text-muted">Активных: @Model.ActiveDocumentTypesCount</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Последние пользователи</h5>
+    <div class="row g-4 admin-dashboard-tables">
+        <div class="col-12 col-xxl-6 admin-users-panel">
+            <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center p-4">
+                    <div>
+                        <h2 class="h5 mb-1 fw-bold">Пользователи</h2>
+                        <div class="text-muted small">Последние учетные записи в системе</div>
+                    </div>
 
                     <a asp-controller="Admin"
                        asp-action="CreateUser"
-                       class="btn btn-sm btn-primary">
-                        Добавить
+                       class="btn btn-primary">
+                        Добавить пользователя
                     </a>
                 </div>
 
                 <div class="card-body p-0">
-                    @if (!Model.RecentUsers.Any())
+                    @if (Model.RecentUsers.Count == 0)
                     {
                         <div class="p-4 text-muted">
                             Пользователей пока нет.
@@ -183,14 +197,14 @@
                     else
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
+                            <table class="table table-hover align-middle mb-0 admin-compact-table admin-users-table">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>ФИО</th>
-                                        <th>Почта</th>
-                                        <th>Роль</th>
-                                        <th>Статус</th>
-                                        <th class="text-end">Действия</th>
+                                        <th class="ps-4 admin-col-name">ФИО</th>
+                                        <th class="admin-col-email">Почта</th>
+                                        <th class="admin-col-role">Роль</th>
+                                        <th class="admin-col-status">Статус</th>
+                                        <th class="text-end pe-4 admin-col-actions">Действия</th>
                                     </tr>
                                 </thead>
 
@@ -198,41 +212,43 @@
                                     @foreach (var user in Model.RecentUsers)
                                     {
                                         <tr>
-                                            <td>@user.FullName</td>
+                                            <td class="ps-4 fw-semibold">@user.FullName</td>
                                             <td>@user.Email</td>
                                             <td>@RoleName(user.Role)</td>
                                             <td>
-                                                <span class="badge @StatusBadgeClass(user.IsActive)">
+                                                <span class="badge rounded-pill px-3 py-2 @StatusBadgeClass(user.IsActive)">
                                                     @StatusText(user.IsActive)
                                                 </span>
                                             </td>
-                                            <td class="text-end">
+                                            <td class="text-end pe-4">
                                                 @if (user.Id == Model.CurrentUserId)
                                                 {
                                                     <span class="text-muted small">Текущий пользователь</span>
                                                 }
                                                 else
                                                 {
-                                                    <a asp-controller="Admin"
-                                                       asp-action="EditUser"
-                                                       asp-route-id="@user.Id"
-                                                       class="btn btn-sm btn-outline-primary me-1">
-                                                        Изменить
-                                                    </a>
+                                                    <div class="admin-actions-wrap">
+                                                        <a asp-controller="Admin"
+                                                           asp-action="EditUser"
+                                                           asp-route-id="@user.Id"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            Изменить
+                                                        </a>
 
-                                                    <form asp-controller="Admin"
-                                                          asp-action="ToggleUserActive"
-                                                          method="post"
-                                                          class="d-inline">
-                                                        @Html.AntiForgeryToken()
+                                                        <form asp-controller="Admin"
+                                                              asp-action="ToggleUserActive"
+                                                              method="post"
+                                                              class="d-inline">
+                                                            @Html.AntiForgeryToken()
 
-                                                        <input type="hidden" name="id" value="@user.Id" />
+                                                            <input type="hidden" name="id" value="@user.Id" />
 
-                                                        <button type="submit"
-                                                                class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success")">
-                                                            @(user.IsActive ? "Отключить" : "Включить")
-                                                        </button>
-                                                    </form>
+                                                            <button type="submit"
+                                                                    class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                                                @(user.IsActive ? "Отключить" : "Включить")
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 }
                                             </td>
                                         </tr>
@@ -245,20 +261,23 @@
             </div>
         </div>
 
-        <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Типы документов</h5>
+        <div class="col-12 col-xxl-6 admin-documents-panel">
+            <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center p-4">
+                    <div>
+                        <h2 class="h5 mb-1 fw-bold">Типы документов</h2>
+                        <div class="text-muted small">Справки и заявления, доступные студентам</div>
+                    </div>
 
                     <a asp-controller="Admin"
                        asp-action="CreateDocumentType"
-                       class="btn btn-sm btn-primary">
-                        Добавить
+                       class="btn btn-primary">
+                        Добавить тип
                     </a>
                 </div>
 
                 <div class="card-body p-0">
-                    @if (!Model.DocumentTypes.Any())
+                    @if (Model.DocumentTypes.Count == 0)
                     {
                         <div class="p-4 text-muted">
                             Типы документов пока не добавлены.
@@ -267,14 +286,14 @@
                     else
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
+                            <table class="table table-hover align-middle mb-0 admin-compact-table admin-document-types-table">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Код</th>
-                                        <th>Наименование</th>
-                                        <th>Категория</th>
-                                        <th>Статус</th>
-                                        <th class="text-end">Действия</th>
+                                        <th class="ps-4 admin-col-code">Код</th>
+                                        <th class="admin-col-docname">Наименование</th>
+                                        <th class="admin-col-category">Категория</th>
+                                        <th class="admin-col-status">Статус</th>
+                                        <th class="text-end pe-4 admin-col-actions">Действия</th>
                                     </tr>
                                 </thead>
 
@@ -282,35 +301,37 @@
                                     @foreach (var type in Model.DocumentTypes)
                                     {
                                         <tr>
-                                            <td>@type.Code</td>
-                                            <td>@type.Name</td>
+                                            <td class="ps-4 text-muted admin-doc-code">@type.Code</td>
+                                            <td class="fw-semibold">@type.Name</td>
                                             <td>@DisplayName(type.Category)</td>
                                             <td>
-                                                <span class="badge @StatusBadgeClass(type.IsActive)">
+                                                <span class="badge rounded-pill px-3 py-2 @StatusBadgeClass(type.IsActive)">
                                                     @StatusText(type.IsActive)
                                                 </span>
                                             </td>
-                                            <td class="text-end">
-                                                <a asp-controller="Admin"
-                                                   asp-action="EditDocumentType"
-                                                   asp-route-id="@type.Id"
-                                                   class="btn btn-sm btn-outline-primary me-1">
-                                                    Изменить
-                                                </a>
+                                            <td class="text-end pe-4">
+                                                <div class="admin-actions-wrap">
+                                                    <a asp-controller="Admin"
+                                                       asp-action="EditDocumentType"
+                                                       asp-route-id="@type.Id"
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        Изменить
+                                                    </a>
 
-                                                <form asp-controller="Admin"
-                                                      asp-action="ToggleDocumentTypeActive"
-                                                      method="post"
-                                                      class="d-inline">
-                                                    @Html.AntiForgeryToken()
+                                                    <form asp-controller="Admin"
+                                                          asp-action="ToggleDocumentTypeActive"
+                                                          method="post"
+                                                          class="d-inline">
+                                                        @Html.AntiForgeryToken()
 
-                                                    <input type="hidden" name="id" value="@type.Id" />
+                                                        <input type="hidden" name="id" value="@type.Id" />
 
-                                                    <button type="submit"
-                                                            class="btn btn-sm @(type.IsActive ? "btn-outline-danger" : "btn-outline-success")">
-                                                        @(type.IsActive ? "Отключить" : "Включить")
-                                                    </button>
-                                                </form>
+                                                        <button type="submit"
+                                                                class="btn btn-sm @(type.IsActive ? "btn-outline-danger" : "btn-outline-success")">
+                                                            @(type.IsActive ? "Отключить" : "Включить")
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     }

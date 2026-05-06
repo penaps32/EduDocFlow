@@ -4,52 +4,120 @@
     ViewData["Title"] = "Вход в систему";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card shadow-sm mt-5">
-            <div class="card-body">
-                <h3 class="card-title mb-3">Вход в систему</h3>
-
-                <p class="text-muted">
-                    Информационная система обработки заявлений и справок студентов.
+<section class="page-section">
+    <div class="container">
+        <div class="page-header mb-4">
+            <div>
+                <div class="eyebrow">Авторизация</div>
+                <h1 class="page-title">Вход в систему</h1>
+                <p class="page-subtitle">
+                    Войдите в учебный документооборот, чтобы подать заявку, обработать обращение или управлять системой.
                 </p>
+            </div>
 
-                <form asp-action="Login" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                    На главную
+                </a>
+            </div>
+        </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" autocomplete="username" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-1">Данные для входа</h5>
+                        <div class="text-muted small">
+                            Используйте почту и пароль, указанные при создании пользователя.
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" autocomplete="current-password" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
+                    <div class="card-body">
+                        <form asp-action="Login" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label">Электронная почта</label>
+                                <input asp-for="Email"
+                                       class="form-control form-control-lg"
+                                       placeholder="Например: student@edudoc.local" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label">Пароль</label>
+                                <input asp-for="Password"
+                                       class="form-control form-control-lg"
+                                       placeholder="Введите пароль" />
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-check mb-4">
+                                <input asp-for="RememberMe" class="form-check-input" />
+                                <label asp-for="RememberMe" class="form-check-label">
+                                    Запомнить меня
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary px-5">
+                                Войти
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-1">Роли в системе</h5>
+                        <div class="text-muted small">
+                            После входа пользователь автоматически попадает в свой раздел.
+                        </div>
                     </div>
 
-                    <div class="form-check mb-3">
-                        <input asp-for="RememberMe" class="form-check-input" />
-                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    <div class="card-body">
+                        <div class="role-item mb-4">
+                            <div class="role-number bg-blue-lt text-blue">01</div>
+                            <div>
+                                <div class="fw-semibold">Студент</div>
+                                <div class="text-muted small">
+                                    Подает заявки, смотрит статусы, добавляет уточнения и получает готовые документы.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="role-item mb-4">
+                            <div class="role-number bg-green-lt text-green">02</div>
+                            <div>
+                                <div class="fw-semibold">Сотрудник</div>
+                                <div class="text-muted small">
+                                    Проверяет заявки, меняет статусы, оставляет комментарии и формирует документы.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="role-item mb-4">
+                            <div class="role-number bg-purple-lt text-purple">03</div>
+                            <div>
+                                <div class="fw-semibold">Администратор</div>
+                                <div class="text-muted small">
+                                    Управляет пользователями, типами документов и доступностью разделов системы.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border mb-0">
+                            Доступ выдается администратором системы. Самостоятельная регистрация не используется.
+                        </div>
                     </div>
-
-                    <button type="submit" class="btn btn-primary w-100">
-                        Войти
-                    </button>
-                </form>
-
-                <hr />
-
-                <div class="small text-muted">
-                    <div>Студент: student@edudoc.local / Student123!</div>
-                    <div>Сотрудник: methodist@edudoc.local / Methodist123!</div>
-                    <div>Админ: admin@edudoc.local / Admin123!</div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

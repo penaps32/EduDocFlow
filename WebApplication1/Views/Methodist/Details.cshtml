@@ -16,28 +16,42 @@
         };
     }
 
-    string EmptyText(string value)
+    string StatusBadgeClass(DocumentStatus status)
+    {
+        return status switch
+        {
+            DocumentStatus.Created => "bg-secondary text-white",
+            DocumentStatus.OnMethodistReview => "bg-warning text-dark",
+            DocumentStatus.Completed => "bg-success text-white",
+            DocumentStatus.Rejected => "bg-danger text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    string EmptyText(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? "Не указано" : value;
     }
 
     DateTime? GetStudyPeriodEnd()
-{
-    if (Model.StudyPeriodEnd.HasValue)
     {
-        return Model.StudyPeriodEnd.Value;
+        if (Model.StudyPeriodEnd.HasValue)
+        {
+            return Model.StudyPeriodEnd.Value;
+        }
+
+        if (Model.StudyPeriodStart.HasValue)
+        {
+            return Model.StudyPeriodStart.Value
+                .AddYears(3)
+                .AddMonths(10)
+                .AddDays(-1);
+        }
+
+        return null;
     }
 
-    if (Model.StudyPeriodStart.HasValue)
-    {
-        return Model.StudyPeriodStart.Value
-            .AddYears(3)
-            .AddMonths(10)
-            .AddDays(-1);
-    }
-
-    return null;
-}
+    var studyPeriodEnd = GetStudyPeriodEnd();
 }
 
 <div class="container mt-4">
@@ -81,7 +95,7 @@
 
                         <dt class="col-sm-4">Статус</dt>
                         <dd class="col-sm-8">
-                            <span class="badge bg-secondary">
+                            <span class="badge @StatusBadgeClass(Model.Status)">
                                 @StatusName(Model.Status)
                             </span>
                         </dd>
@@ -136,12 +150,15 @@
 
                         <dt class="col-sm-4">Форма обучения</dt>
                         <dd class="col-sm-8">@EmptyText(Model.StudyForm)</dd>
-
                         <dt class="col-sm-4">Период обучения</dt>
                         <dd class="col-sm-8">
-                            @(Model.StudyPeriodStart.HasValue ? Model.StudyPeriodStart.Value.ToString("dd.MM.yyyy") : "Не указано")
-                            -
-                            @(GetStudyPeriodEnd().HasValue ? GetStudyPeriodEnd()!.Value.ToString("dd.MM.yyyy") : "Не указано")
+                          @(Model.StudyPeriodStart.HasValue
+                              ? Model.StudyPeriodStart.Value.ToString("dd.MM.yyyy")
+                              : "Не указано")
+                              -
+                              @(studyPeriodEnd.HasValue
+                              ? studyPeriodEnd.Value.ToString("dd.MM.yyyy")
+                             : "Не указано")
                         </dd>
                     </dl>
                 </div>
@@ -218,7 +235,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Комментарий методиста</label>
+                            <label class="form-label">Комментарий сотрудника</label>
                             <div class="form-text mb-2">
                                 Комментарий можно оставить пустым. При отклонении заявки причина обязательна.
                             </div>
@@ -234,33 +251,33 @@
                     </form>
                 </div>
             </div>
-                        <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Готовый документ</h5>
-                </div>
+            <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Готовый документ</h5>
+            </div>
 
-                <div class="card-body">
-                    @if (Model.Status == DocumentStatus.Completed)
-                    {
-                        <p class="text-muted">
-                            Заявка завершена. Можно сформировать печатную форму документа.
-                        </p>
+            <div class="card-body">
+                @if (Model.Status == DocumentStatus.Completed)
+                {
+                    <p class="text-muted">
+                        Заявка завершена. Можно сформировать печатную форму документа.
+                    </p>
 
-                        <a asp-controller="Methodist"
+                    <a asp-controller="Methodist"
                            asp-action="PrintDocument"
                            asp-route-id="@Model.Id"
-                           class="btn btn-outline-primary w-100">
-                            Сформировать документ
-                        </a>
-                    }
-                    else
-                    {
-                        <p class="text-muted mb-0">
-                            Документ можно сформировать после перевода заявки в статус «Готова».
-                        </p>
-                    }
-                </div>
+                           class="btn btn-primary w-100">
+                        Сформировать документ
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">
+                        Документ можно сформировать после перевода заявки в статус «Готова».
+                    </p>
+                }
             </div>
+        </div>
 
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white">

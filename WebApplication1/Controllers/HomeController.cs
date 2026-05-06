@@ -8,18 +8,39 @@ namespace WebApplication1.Controllers
     {
         public IActionResult Index()
         {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                if (User.IsInRole(nameof(UserRole.Student)))
+                {
+                    return RedirectToAction("Index", "Student");
+                }
+
+                if (User.IsInRole(nameof(UserRole.Methodist)))
+                {
+                    return RedirectToAction("Index", "Methodist");
+                }
+
+                if (User.IsInRole(nameof(UserRole.Admin)))
+                {
+                    return RedirectToAction("Index", "Admin");
+                }
+            }
+
             return View();
         }
 
         public IActionResult Privacy()
         {
-            return View();
+            return RedirectToAction(nameof(Index));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
     }
 }
