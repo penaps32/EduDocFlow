@@ -1,4 +1,4 @@
-﻿@model EduDocFlow.Web.Models.DocumentRequest
+@model EduDocFlow.Web.Models.DocumentRequest
 @using EduDocFlow.Web.Models
 
 @{
@@ -20,11 +20,11 @@
     {
         return status switch
         {
-            DocumentStatus.Created => "bg-secondary-lt text-secondary",
-            DocumentStatus.OnMethodistReview => "bg-yellow-lt text-yellow",
-            DocumentStatus.Completed => "bg-green-lt text-green",
-            DocumentStatus.Rejected => "bg-red-lt text-red",
-            _ => "bg-secondary-lt text-secondary"
+            DocumentStatus.Created => "edu-status edu-status-created",
+            DocumentStatus.OnMethodistReview => "edu-status edu-status-progress",
+            DocumentStatus.Completed => "edu-status edu-status-done",
+            DocumentStatus.Rejected => "edu-status edu-status-rejected",
+            _ => "edu-status edu-status-muted"
         };
     }
 
@@ -49,73 +49,55 @@
     var history = Model.StatusHistoryItems?.OrderByDescending(x => x.ChangedAt).ToList() ?? new();
 }
 
-<div class="container-xl">
-    <div class="page-header d-print-none mb-4">
-        <div class="row align-items-center">
-            <div class="col">
-                <div class="page-pretitle">
-                    Кабинет студента
-                </div>
-                <h1 class="page-title">
-                    Заявка @Model.Number
-                </h1>
-                <div class="text-secondary mt-2">
-                    Подробная информация по вашей заявке и история ее обработки.
-                </div>
-            </div>
-
-            <div class="col-auto">
-                <a asp-controller="Student"
-                       asp-action="Index"
-                       class="btn btn-outline-secondary">
-                    Назад в кабинет
-                </a>
-            </div>
+<div class="edu-page student-page">
+    <div class="edu-page-head">
+        <div>
+            <div class="edu-eyebrow">Кабинет студента</div>
+            <h1 class="edu-page-title">Заявка @Model.Number</h1>
+            <p class="edu-page-subtitle">
+                Подробная информация по вашей заявке и история ее обработки.
+            </p>
         </div>
+
+        <a asp-controller="Student"
+           asp-action="Index"
+           class="edu-btn edu-btn-outline">
+            Назад в кабинет
+        </a>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success">
+        <div class="alert alert-success edu-alert">
             @TempData["SuccessMessage"]
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger">
+        <div class="alert alert-danger edu-alert">
             @TempData["ErrorMessage"]
         </div>
     }
 
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="card border-0 mb-4">
-                <div class="card-header">
+    <div class="student-details-layout">
+        <main class="student-details-main">
+            <section class="edu-card mb-4">
+                <div class="edu-card-head student-status-head">
                     <div>
-                        <h3 class="card-title mb-1">
-                            Данные заявки
-                        </h3>
-                        <div class="text-secondary">
-                            Основные сведения, указанные при создании заявки.
-                        </div>
+                        <h2 class="edu-card-title">Данные заявки</h2>
+                        <p class="edu-card-subtitle">Основные сведения, указанные при создании заявки.</p>
                     </div>
+                    <span class="@StatusBadgeClass(Model.Status)">@StatusName(Model.Status)</span>
                 </div>
 
-                <div class="card-body">
-                    <dl class="edf-info-list">
+                <div class="edu-card-body">
+                    <dl class="edu-info-grid">
                         <dt>Номер заявки</dt>
                         <dd>@Model.Number</dd>
 
                         <dt>Тип документа</dt>
                         <dd>@(Model.DocumentType?.Name ?? "Документ не указан")</dd>
-
-                        <dt>Статус</dt>
-                        <dd>
-                            <span class="badge @StatusBadgeClass(Model.Status)">
-                                @StatusName(Model.Status)
-                            </span>
-                        </dd>
 
                         <dt>Дата создания</dt>
                         <dd>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
@@ -153,17 +135,15 @@
                         <dd>@EmptyText(Model.StudentComment, "Комментарий не указан")</dd>
                     </dl>
                 </div>
-            </div>
+            </section>
 
-            <div class="card border-0 mb-4">
-                <div class="card-header">
-                    <h3 class="card-title mb-0">
-                        Период обучения
-                    </h3>
+            <section class="edu-card mb-4">
+                <div class="edu-card-head">
+                    <h2 class="edu-card-title">Период обучения</h2>
                 </div>
 
-                <div class="card-body">
-                    <dl class="edf-info-list mb-0">
+                <div class="edu-card-body">
+                    <dl class="edu-info-grid edu-info-grid-small mb-0">
                         <dt>Начало периода</dt>
                         <dd>
                             @(Model.StudyPeriodStart.HasValue
@@ -179,25 +159,21 @@
                         </dd>
                     </dl>
                 </div>
-            </div>
+            </section>
 
-            <div class="card border-0">
-                <div class="card-header">
+            <section class="edu-card">
+                <div class="edu-card-head">
                     <div>
-                        <h3 class="card-title mb-1">
-                            История обработки
-                        </h3>
-                        <div class="text-secondary">
-                            Все изменения статуса заявки сохраняются в журнале.
-                        </div>
+                        <h2 class="edu-card-title">История обработки</h2>
+                        <p class="edu-card-subtitle">Все изменения статуса заявки сохраняются в журнале.</p>
                     </div>
                 </div>
 
-                <div class="card-body">
+                <div class="edu-card-body p-0">
                     @if (history.Any())
                     {
                         <div class="table-responsive">
-                            <table class="table table-vcenter">
+                            <table class="table edu-table mb-0">
                                 <thead>
                                     <tr>
                                         <th>Дата</th>
@@ -212,7 +188,7 @@
                                         <tr>
                                             <td class="text-nowrap">@item.ChangedAt.ToString("dd.MM.yyyy HH:mm")</td>
                                             <td>
-                                                <span class="badge @StatusBadgeClass(item.NewStatus)">
+                                                <span class="@StatusBadgeClass(item.NewStatus)">
                                                     @StatusName(item.NewStatus)
                                                 </span>
                                             </td>
@@ -226,51 +202,41 @@
                     }
                     else
                     {
-                        <div class="empty">
-                            <div class="empty-title">
-                                История пока отсутствует
-                            </div>
-                            <p class="empty-subtitle text-secondary">
-                                Записи появятся после изменения статуса заявки.
-                            </p>
+                        <div class="edu-empty">
+                            <div class="edu-empty-title">История пока отсутствует</div>
+                            <div class="edu-empty-text">Записи появятся после изменения статуса заявки.</div>
                         </div>
                     }
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
 
-        <div class="col-lg-4">
-            <div class="card border-0 mb-4">
-                <div class="card-header">
-                    <h3 class="card-title mb-0">
-                        Текущий статус
-                    </h3>
+        <aside class="student-details-side">
+            <section class="edu-card mb-4">
+                <div class="edu-card-head">
+                    <h2 class="edu-card-title">Текущий статус</h2>
                 </div>
 
-                <div class="card-body">
+                <div class="edu-card-body">
                     <div class="mb-3">
-                        <span class="badge @StatusBadgeClass(Model.Status)">
-                            @StatusName(Model.Status)
-                        </span>
+                        <span class="@StatusBadgeClass(Model.Status)">@StatusName(Model.Status)</span>
                     </div>
 
-                    <p class="text-secondary mb-0">
+                    <p class="student-help-text mb-0">
                         @StatusText(Model.Status)
                     </p>
                 </div>
-            </div>
+            </section>
 
-            <div class="card border-0 mb-4">
-                <div class="card-header">
-                    <h3 class="card-title mb-0">
-                        Добавить уточнение
-                    </h3>
+            <section class="edu-card mb-4">
+                <div class="edu-card-head">
+                    <h2 class="edu-card-title">Добавить уточнение</h2>
                 </div>
 
-                <div class="card-body">
+                <div class="edu-card-body">
                     @if (Model.Status == DocumentStatus.Completed || Model.Status == DocumentStatus.Rejected)
                     {
-                        <div class="text-secondary">
+                        <div class="student-help-text">
                             Заявка завершена. Новые уточнения по ней недоступны.
                         </div>
                     }
@@ -281,58 +247,52 @@
 
                             <input type="hidden" name="requestId" value="@Model.Id" />
 
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Текст уточнения
-                                </label>
+                            <div class="edu-field mb-3">
+                                <label class="edu-label">Текст уточнения</label>
                                 <textarea name="text"
-                                          class="form-control"
+                                          class="form-control edu-control"
                                           rows="4"
-                                          placeholder="Например: уточняю место предоставления справки или добавляю сведения по запросу учебной части"></textarea>
+                                          placeholder="Например: уточняю место предоставления справки"></textarea>
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-100">
+                            <button type="submit" class="edu-btn edu-btn-primary w-100">
                                 Отправить уточнение
                             </button>
                         </form>
                     }
                 </div>
-            </div>
+            </section>
 
-            <div class="card border-0">
-                <div class="card-header">
+            <section class="edu-card">
+                <div class="edu-card-head">
                     <div>
-                        <h3 class="card-title mb-1">
-                            Переписка по заявке
-                        </h3>
-                        <div class="text-secondary">
-                            Комментарии студента и учебной части.
-                        </div>
+                        <h2 class="edu-card-title">Переписка</h2>
+                        <p class="edu-card-subtitle">Комментарии студента и учебной части.</p>
                     </div>
                 </div>
 
-                <div class="card-body">
+                <div class="edu-card-body">
                     @if (comments.Any())
                     {
                         @foreach (var comment in comments)
                         {
                             var isStudentComment = comment.AuthorId == Model.StudentId;
 
-                            <div class="edf-message">
-                                <div class="d-flex justify-content-between gap-3 mb-1">
-                                    <div class="fw-semibold">
+                            <div class="edu-message">
+                                <div class="edu-message-top">
+                                    <div class="edu-message-author">
                                         @(comment.Author?.FullName ?? "Пользователь не указан")
                                     </div>
-                                    <div class="text-secondary small text-nowrap">
+                                    <div class="edu-message-date">
                                         @comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")
                                     </div>
                                 </div>
 
-                                <div class="text-secondary small mb-2">
+                                <div class="edu-message-role">
                                     @(isStudentComment ? "Студент" : "Сотрудник учебной части")
                                 </div>
 
-                                <div>
+                                <div class="edu-message-text">
                                     @comment.Text
                                 </div>
                             </div>
@@ -340,12 +300,10 @@
                     }
                     else
                     {
-                        <div class="text-secondary">
-                            Комментариев пока нет.
-                        </div>
+                        <div class="student-help-text">Комментариев пока нет.</div>
                     }
                 </div>
-            </div>
-        </div>
+            </section>
+        </aside>
     </div>
 </div>

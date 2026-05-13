@@ -1,281 +1,163 @@
+@model EduDocFlow.Web.ViewModels.MethodistDashboardViewModel
+@using EduDocFlow.Web.Models
+
+@{
+    ViewData["Title"] = "Кабинет сотрудника";
+}
+
 @functions {
-    string RoleName(object? role)
+    private string StatusText(DocumentStatus status)
     {
-        var value = role?.ToString() ?? "";
-
-        return value switch
+        return status switch
         {
-            "Student" => "Студент",
-            "Methodist" => "Сотрудник",
-            "Administrator" => "Администратор",
-            "Admin" => "Администратор",
-            _ => value
+            DocumentStatus.Created => "Создана",
+            DocumentStatus.OnMethodistReview => "В работе",
+            DocumentStatus.Completed => "Готова",
+            DocumentStatus.Rejected => "Отклонена",
+            _ => "Неизвестно"
         };
     }
 
-    string DisplayName(object? value)
+    private string StatusClass(DocumentStatus status)
     {
-        var text = value?.ToString() ?? "";
-
-        return text switch
+        return status switch
         {
-            "Certificate" => "Справка",
-            "Application" => "Заявление",
-            "Service" => "Служебный документ",
-            "ServiceDocument" => "Служебный документ",
-            _ => text
+            DocumentStatus.Created => "status-created",
+            DocumentStatus.OnMethodistReview => "status-progress",
+            DocumentStatus.Completed => "status-completed",
+            DocumentStatus.Rejected => "status-rejected",
+            _ => "status-muted"
         };
     }
 
-    string StatusBadgeClass(bool isActive)
+    private string DateText(object? value)
     {
-        return isActive
-            ? "bg-success-subtle text-success"
-            : "bg-secondary-subtle text-secondary";
+        if (value is DateTime date)
+        {
+            return date.ToString("dd.MM.yyyy HH:mm");
+        }
+
+        return "Не указан";
     }
 
-    string StatusText(bool isActive)
+    private string DateOnlyText(object? value)
     {
-        return isActive ? "Активен" : "Выключен";
+        if (value is DateTime date)
+        {
+            return date.ToString("dd.MM.yyyy");
+        }
+
+        return "Не указан";
     }
 }
 
-<style>
-    .admin-dashboard-container {
-        max-width: 1600px;
-    }
+<div class="office-page">
+    <section class="office-hero">
+        <div>
+            <div class="office-kicker">Кабинет сотрудника</div>
+            <h1 class="office-title">Обработка заявок</h1>
+            <p class="office-lead">
+                Здесь отображаются обращения студентов, которые нужно проверить, обработать и подготовить к выдаче.
+            </p>
+        </div>
+    </section>
 
-    .admin-dashboard-grid {
-        display: grid;
-        grid-template-columns: minmax(520px, 0.9fr) minmax(760px, 1.35fr);
-        gap: 1.5rem;
-        align-items: stretch;
-    }
+    <section class="office-stats">
+        <div class="office-stat-card">
+            <div class="office-stat-label">Всего заявок</div>
+            <div class="office-stat-value">@Model.TotalRequests</div>
+        </div>
 
-    .admin-table th {
-        font-size: 0.78rem;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        color: #1f2937;
-        white-space: nowrap;
-    }
+        <div class="office-stat-card">
+            <div class="office-stat-label">Созданы</div>
+            <div class="office-stat-value">@Model.CreatedRequests</div>
+        </div>
 
-    .admin-table td {
-        vertical-align: middle;
-    }
+        <div class="office-stat-card">
+            <div class="office-stat-label">В работе</div>
+            <div class="office-stat-value">@Model.InProgressRequests</div>
+        </div>
 
-    .admin-doc-name {
-        min-width: 260px;
-    }
+        <div class="office-stat-card">
+            <div class="office-stat-label">Готовы</div>
+            <div class="office-stat-value">@Model.CompletedRequests</div>
+        </div>
+    </section>
 
-    .admin-doc-category {
-        width: 150px;
-        white-space: nowrap;
-    }
+    <section class="office-card">
+        <div class="office-card-head">
+            <div>
+                <h2>Последние заявки</h2>
+                <p>Список обращений, требующих обработки сотрудником.</p>
+            </div>
+        </div>
 
-    .admin-doc-status {
-        width: 130px;
-        white-space: nowrap;
-    }
-
-    .admin-doc-actions {
-        width: 190px;
-        white-space: nowrap;
-    }
-
-    .admin-user-actions {
-        width: 190px;
-        white-space: nowrap;
-    }
-
-    .admin-actions-wrap {
-        display: inline-flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        flex-wrap: nowrap;
-    }
-
-    @@media (max-width: 1399.98px) {
-        .admin-dashboard-grid {
-            grid-template-columns: 1fr;
+        @if (Model.Requests == null || !Model.Requests.Any())
+        {
+            <div class="office-empty">
+                Сейчас нет заявок для обработки.
+            </div>
         }
-    }
-</style>
+        else
+        {
+            <div class="office-table-wrap">
+                <table class="office-table">
+                    <thead>
+                        <tr>
+                            <th>Номер</th>
+                            <th>Студент</th>
+                            <th>Документ</th>
+                            <th>Статус</th>
+                            <th>Создана</th>
+                            <th>Срок</th>
+                            <th class="office-actions-col">Действия</th>
+                        </tr>
+                    </thead>
 
-<div class="admin-dashboard-grid">
-    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
-        <div class="card-header bg-white border-bottom d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center p-4">
-            <div>
-                <h2 class="h5 mb-1 fw-bold">Пользователи</h2>
-                <div class="text-muted small">Последние учетные записи в системе</div>
-            </div>
-
-            <a asp-controller="Admin"
-                   asp-action="CreateUser"
-                   class="btn btn-primary">
-                Добавить пользователя
-            </a>
-        </div>
-
-        <div class="card-body p-0">
-            @if (!Model.RecentUsers.Any())
-            {
-                <div class="p-4 text-muted">
-                    Пользователей пока нет.
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 admin-table">
-                        <thead class="table-light">
+                    <tbody>
+                        @foreach (var request in Model.Requests)
+                        {
                             <tr>
-                                <th class="ps-4">Почта</th>
-                                <th>Роль</th>
-                                <th>Статус</th>
-                                <th class="text-end pe-4 admin-user-actions">Действия</th>
+                                <td>
+                                    <div class="office-main-text">@request.Number</div>
+                                </td>
+
+                                <td>
+                                    <div class="office-main-text">@request.StudentFullName</div>
+                                    <div class="office-sub-text">@request.StudentGroup</div>
+                                </td>
+
+                                <td>
+                                    <div class="office-main-text">@request.DocumentTypeName</div>
+                                </td>
+
+                                <td>
+                                    <span class="office-status @StatusClass(request.Status)">
+                                        @StatusText(request.Status)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @DateText(request.CreatedAt)
+                                </td>
+
+                                <td>
+                                    @DateOnlyText(request.DueDate)
+                                </td>
+
+                                <td class="office-actions-col">
+                                    <a asp-controller="Methodist"
+                                           asp-action="Details"
+                                           asp-route-id="@request.Id"
+                                           class="office-btn office-btn-outline">
+                                        Открыть
+                                    </a>
+                                </td>
                             </tr>
-                        </thead>
-
-                        <tbody>
-                            @foreach (var user in Model.RecentUsers)
-                            {
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="fw-semibold">@user.FullName</div>
-                                        <div class="text-muted small">@user.Email</div>
-                                    </td>
-
-                                    <td>@RoleName(user.Role)</td>
-
-                                    <td>
-                                        <span class="badge rounded-pill px-3 py-2 @StatusBadgeClass(user.IsActive)">
-                                            @StatusText(user.IsActive)
-                                        </span>
-                                    </td>
-
-                                    <td class="text-end pe-4 admin-user-actions">
-                                        @if (user.Id == Model.CurrentUserId)
-                                        {
-                                            <span class="text-muted small">Текущий пользователь</span>
-                                        }
-                                        else
-                                        {
-                                            <div class="admin-actions-wrap">
-                                                <a asp-controller="Admin"
-                                                       asp-action="EditUser"
-                                                       asp-route-id="@user.Id"
-                                                       class="btn btn-sm btn-outline-primary">
-                                                    Изменить
-                                                </a>
-
-                                                <form asp-controller="Admin"
-                                                      asp-action="ToggleUserActive"
-                                                      method="post"
-                                                      class="d-inline">
-                                                    @Html.AntiForgeryToken()
-
-                                                    <input type="hidden" name="id" value="@user.Id" />
-
-                                                    <button type="submit"
-                                                            class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-outline-success")">
-                                                        @(user.IsActive ? "Отключить" : "Включить")
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-        </div>
-    </div>
-
-    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
-        <div class="card-header bg-white border-bottom d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center p-4">
-            <div>
-                <h2 class="h5 mb-1 fw-bold">Типы документов</h2>
-                <div class="text-muted small">Справки и заявления, доступные студентам</div>
+                        }
+                    </tbody>
+                </table>
             </div>
-
-            <a asp-controller="Admin"
-                   asp-action="CreateDocumentType"
-                   class="btn btn-primary">
-                Добавить тип
-            </a>
-        </div>
-
-        <div class="card-body p-0">
-            @if (!Model.DocumentTypes.Any())
-            {
-                <div class="p-4 text-muted">
-                    Типы документов пока не добавлены.
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 admin-table">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-4 admin-doc-name">Наименование</th>
-                                <th class="admin-doc-category">Категория</th>
-                                <th class="admin-doc-status">Статус</th>
-                                <th class="text-end pe-4 admin-doc-actions">Действия</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @foreach (var item in Model.DocumentTypes)
-                            {
-                                <tr>
-                                    <td class="ps-4 admin-doc-name">
-                                        <div class="fw-semibold">@item.Name</div>
-                                        <div class="text-muted small">@item.Code</div>
-                                    </td>
-
-                                    <td class="admin-doc-category">
-                                        @DisplayName(item.Category)
-                                    </td>
-
-                                    <td class="admin-doc-status">
-                                        <span class="badge rounded-pill px-3 py-2 @StatusBadgeClass(item.IsActive)">
-                                            @StatusText(item.IsActive)
-                                        </span>
-                                    </td>
-
-                                    <td class="text-end pe-4 admin-doc-actions">
-                                        <div class="admin-actions-wrap">
-                                            <a asp-controller="Admin"
-                                                   asp-action="EditDocumentType"
-                                                   asp-route-id="@item.Id"
-                                                   class="btn btn-sm btn-outline-primary">
-                                                Изменить
-                                            </a>
-
-                                            <form asp-controller="Admin"
-                                                  asp-action="ToggleDocumentTypeActive"
-                                                  asp-route-id="@item.Id"
-                                                  method="post"
-                                                  class="d-inline">
-                                                @Html.AntiForgeryToken()
-
-                                                <button type="submit"
-                                                        class="btn btn-sm @(item.IsActive ? "btn-outline-danger" : "btn-outline-success")">
-                                                    @(item.IsActive ? "Отключить" : "Включить")
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-        </div>
-    </div>
+        }
+    </section>
 </div>

@@ -1,108 +1,91 @@
-﻿<!DOCTYPE html>
+﻿@using EduDocFlow.Web.Models
+
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    var isLoginPage = currentController == "Account" && currentAction == "Login";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+
+    var userName = User.Identity?.Name ?? "";
+
+    var sectionName = "Учебный документооборот";
+    var roleName = "";
+
+    if (User.IsInRole(nameof(UserRole.Admin)))
+    {
+        sectionName = "Панель администратора";
+        roleName = "Администратор";
+    }
+    else if (User.IsInRole(nameof(UserRole.Methodist)))
+    {
+        sectionName = "Кабинет сотрудника";
+        roleName = "Сотрудник";
+    }
+    else if (User.IsInRole(nameof(UserRole.Student)))
+    {
+        sectionName = "Кабинет студента";
+        roleName = "Студент";
+    }
+}
+
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Учебный документооборот</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/core@latest/dist/css/tabler.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/WebApplication1.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/EduDocFlow.Web.styles.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 
-<body>
-    <div class="page">
-        <header class="navbar navbar-expand-md d-print-none edf-navbar">
-            <div class="container-xl">
-                <a class="navbar-brand edf-brand" asp-controller="Home" asp-action="Index">
-                    <span class="edf-brand-mark">УД</span>
-                    <span>Учебный документооборот</span>
-                </a>
-
-                <button class="navbar-toggler"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#mainNavbar"
-                        aria-controls="mainNavbar"
-                        aria-expanded="false"
-                        aria-label="Переключить навигацию">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div id="mainNavbar" class="collapse navbar-collapse">
-                    <ul class="navbar-nav">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            if (User.IsInRole("Student"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Student" asp-action="Index">
-                                        Кабинет студента
-                                    </a>
-                                </li>
-                            }
-
-                            if (User.IsInRole("Methodist"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Methodist" asp-action="Index">
-                                        Кабинет сотрудника
-                                    </a>
-                                </li>
-                            }
-
-                            if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Admin" asp-action="Index">
-                                        Панель администратора
-                                    </a>
-                                </li>
-                            }
-                        }
-                    </ul>
-
-                    <div class="ms-auto d-flex align-items-center gap-3">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <div class="d-none d-md-block text-end">
-                                <div class="small text-secondary">Пользователь</div>
-                                <div class="fw-semibold">@User.Identity.Name</div>
-                            </div>
-
-                            <form asp-controller="Account"
-                                  asp-action="Logout"
-                                  method="post"
-                                  class="d-inline">
-                                @Html.AntiForgeryToken()
-
-                                <button type="submit" class="btn btn-outline-secondary">
-                                    Выйти
-                                </button>
-                            </form>
-                        }
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <main class="page-wrapper">
-            <div class="page-body">
-                @RenderBody()
-            </div>
+<body class="@(isLoginPage ? "auth-body" : "portal-body")">
+    @if (isLoginPage)
+    {
+        <main>
+            @RenderBody()
         </main>
+    }
+    else
+    {
+        <div class="portal-shell no-sidebar">
+            <div class="portal-main">
+                <header class="portal-topbar">
 
-        <footer class="footer footer-transparent d-print-none">
-            <div class="container-xl">
-                <div class="text-secondary">
-                    © 2026 - Учебный документооборот - информационная система обработки заявлений и справок студентов
-                </div>
+                    <div class="portal-topbar-center">
+                        @if (isAuthenticated && !(ViewData["HideUserPanel"] as bool? == true))
+                        {
+                            <div class="portal-user">
+                                <div class="portal-user-info">
+                                    <div class="portal-user-role">@roleName</div>
+                                    <div class="portal-user-name">@userName</div>
+                                </div>
+
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Выйти</button>
+                                </form>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="portal-user-empty"></div>
+                        }
+                </header>
+
+                <main class="portal-content">
+                    @RenderBody()
+                </main>
             </div>
-        </footer>
-    </div>
+        </div>
+    }
 
-    <script src="https://cdn.jsdelivr.net/npm/@@tabler/core@latest/dist/js/tabler.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)

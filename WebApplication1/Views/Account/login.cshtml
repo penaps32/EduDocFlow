@@ -4,120 +4,71 @@
     ViewData["Title"] = "Вход в систему";
 }
 
-<section class="page-section">
-    <div class="container">
-        <div class="page-header mb-4">
-            <div>
-                <div class="eyebrow">Авторизация</div>
-                <h1 class="page-title">Вход в систему</h1>
-                <p class="page-subtitle">
-                    Войдите в учебный документооборот, чтобы подать заявку, обработать обращение или управлять системой.
-                </p>
-            </div>
-
-            <div>
-                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
-                    На главную
-                </a>
-            </div>
-        </div>
-
-        <div class="row g-4 align-items-stretch">
-            <div class="col-lg-7">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-1">Данные для входа</h5>
-                        <div class="text-muted small">
-                            Используйте почту и пароль, указанные при создании пользователя.
-                        </div>
-                    </div>
-
-                    <div class="card-body">
-                        <form asp-action="Login" method="post">
-                            @Html.AntiForgeryToken()
-
-                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                            <div class="mb-3">
-                                <label asp-for="Email" class="form-label">Электронная почта</label>
-                                <input asp-for="Email"
-                                       class="form-control form-control-lg"
-                                       placeholder="Например: student@edudoc.local" />
-                                <span asp-validation-for="Email" class="text-danger small"></span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label asp-for="Password" class="form-label">Пароль</label>
-                                <input asp-for="Password"
-                                       class="form-control form-control-lg"
-                                       placeholder="Введите пароль" />
-                                <span asp-validation-for="Password" class="text-danger small"></span>
-                            </div>
-
-                            <div class="form-check mb-4">
-                                <input asp-for="RememberMe" class="form-check-input" />
-                                <label asp-for="RememberMe" class="form-check-label">
-                                    Запомнить меня
-                                </label>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary px-5">
-                                Войти
-                            </button>
-                        </form>
-                    </div>
+<div class="auth-page auth-page-clean">
+    <div class="auth-shell">
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <div>
+                    <div class="auth-kicker">Информационная система</div>
+                    <h1 class="auth-title">Учебный документооборот</h1>
+                    <p class="auth-subtitle">Войдите под своей учетной записью, чтобы продолжить работу с заявками и документами.</p>
                 </div>
             </div>
 
-            <div class="col-lg-5">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-1">Роли в системе</h5>
-                        <div class="text-muted small">
-                            После входа пользователь автоматически попадает в свой раздел.
-                        </div>
+            <form asp-action="Login" method="post" class="auth-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="form-field">
+                    <label asp-for="Email" class="form-label">Электронная почта</label>
+                    <input asp-for="Email" class="form-control auth-input" placeholder="Введите электронную почту" autocomplete="username" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Password" class="form-label">Пароль</label>
+                    <input asp-for="Password" class="form-control auth-input" placeholder="Введите пароль" autocomplete="current-password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="auth-options">
+                    <div class="form-check mb-0">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label">Запомнить меня</label>
                     </div>
+                </div>
 
-                    <div class="card-body">
-                        <div class="role-item mb-4">
-                            <div class="role-number bg-blue-lt text-blue">01</div>
-                            <div>
-                                <div class="fw-semibold">Студент</div>
-                                <div class="text-muted small">
-                                    Подает заявки, смотрит статусы, добавляет уточнения и получает готовые документы.
-                                </div>
-                            </div>
-                        </div>
+                <button type="submit" class="btn auth-submit w-100">
+                    Войти
+                </button>
+            </form>
+        </div>
 
-                        <div class="role-item mb-4">
-                            <div class="role-number bg-green-lt text-green">02</div>
-                            <div>
-                                <div class="fw-semibold">Сотрудник</div>
-                                <div class="text-muted small">
-                                    Проверяет заявки, меняет статусы, оставляет комментарии и формирует документы.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="role-item mb-4">
-                            <div class="role-number bg-purple-lt text-purple">03</div>
-                            <div>
-                                <div class="fw-semibold">Администратор</div>
-                                <div class="text-muted small">
-                                    Управляет пользователями, типами документов и доступностью разделов системы.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-light border mb-0">
-                            Доступ выдается администратором системы. Самостоятельная регистрация не используется.
-                        </div>
-                    </div>
+        <div class="auth-info-card">
+            <div class="auth-info-title">Доступные разделы</div>
+            <div class="auth-info-item">
+                <div class="auth-info-number">01</div>
+                <div>
+                    <div class="auth-info-name">Кабинет студента</div>
+                    <div class="auth-info-text">Подача заявок, просмотр статусов и получение готовых документов.</div>
+                </div>
+            </div>
+            <div class="auth-info-item">
+                <div class="auth-info-number">02</div>
+                <div>
+                    <div class="auth-info-name">Кабинет сотрудника</div>
+                    <div class="auth-info-text">Проверка заявок, изменение статусов и подготовка документов.</div>
+                </div>
+            </div>
+            <div class="auth-info-item">
+                <div class="auth-info-number">03</div>
+                <div>
+                    <div class="auth-info-name">Панель администратора</div>
+                    <div class="auth-info-text">Управление пользователями, типами документов и настройками системы.</div>
                 </div>
             </div>
         </div>
     </div>
-</section>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
